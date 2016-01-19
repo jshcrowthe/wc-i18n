@@ -1,0 +1,266 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+
+<!--
+# <fs-i18n-src>
+These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg) and were based on the `<i18-n>` and 
+`<i18-n-domain>` components written by p.kaske.
+
+The system consists of two elements working together: `<fs-i18n>` and `<fs-i18n-src>`
+
+You need at least one `<fs-i18n-src>` in your document. It loads the locale file via `<iron-ajax>` and fills a `I18nCache` global with the translation strings.
+As the name suggests, this element also provides a language domain (named `default` if no other was set).
+
+`<fs-i18n>` elements can define a language domain they belong to and will only be filled with translation string from that domain.
+
+The domain element provides some public methods to get translation strings.
+
+<strong>Note:</strong> Locale files are only fetched once.
+
+Locale files of the `default` domain must use the locale as the filename:
+`locales/en.json`, `locales/de.json`, `locales/fr.json`
+
+Locale files of any domain other than `default` must prepend the domain name followed by an `_`:
+
+"`locales/mydomain_en.json`", "`locales/mydomain_de.json`" or "`locales/mydomain_fr.json`"
+
+### Example of a locale file
+
+```json
+{
+  "welcome-text": "Welcome!"
+  "goodbye-text": "Goodbye!"
+}
+```
+
+## Example
+See the comments on the `<fs-i18n>` element for a simple example.
+
+@element <fs-i18n-src>
+@demo demo/index.html
+@homepage http://familysearchelements.github.io/fs-i18n
+-->
+<dom-module id="fs-i18n-src">
+  <template>
+    <iron-ajax id="ajax"
+      url="{{messagesUrl}}"
+      handle-as="json"
+      on-response="_handleResponse"></iron-ajax>
+  </template>
+</dom-module>
+<script>
+  (function () {
+
+    /**
+     * The global cache for all locales loaded.
+     */
+    window.I18nCache = window.I18nCache || {
+      // The default domain is named 'default'
+      domains: {
+        'default': {
+          locales: {},
+          instances: [],   // Target `i18n-msg` elements for easy update
+          activeLocale: 'en'
+        }
+      }
+    };
+
+    Polymer({
+      is: 'fs-i18n-src',
+
+      /**
+       * The `fs-i18n-locale-ready` is fired after the locale was fetched and all `<i18n-msg>` elements were updated.
+       *
+       * @event fs-i18n-locale-ready
+       * @detail {{locale: String}}
+       */
+
+      properties: {
+        /**
+         * The domain the element serves.
+         */
+        domain: {
+          type: String,
+          value: 'default'
+        },
+
+        /**
+         * The default locale being used.
+         */
+        locale: {
+          type: String,
+          value: function() {
+            if (window.FS && typeof window.FS.simpleLocale === 'function') return FS.simpleLocale();
+            var lang = window.navigator.language;
+            if (lang) {
+              return lang.match(/(\w{2})/)[1];
+            }
+            return 'en';
+          }
+        },
+
+        /**
+         * The folder name where the localized `<lang>.json` files are located.
+         */
+        messagesUrl: {
+          type: String,
+          value: 'locales',
+          observer: '_messagesUrlChanged'
+        },
+
+        /**
+         * An object containing the source locales for the given domain. Looks like
+         * the following.
+         * ```
+         * {
+         *   "en": { ... },
+         *   "ko": { ... },
+         * }
+         * ```
+         * @type {Object}
+         */
+        srcLocales: {
+          type: Object,
+          value: null,
+          observer: '_srcChanged'
+        }
+      },
+
+      observers: [
+        '_shouldFetch(locale, messagesUrl, srcLocales)'
+      ],
+
+      // Reference to the global `I18nCache.domains` object
+      domains: window.I18nCache.domains,
+
+      /**
+       * Returns a message in the chosen locale and domain.
+       * @method getMsg
+       * @param {string} msgId Message id for translation string lookup.
+       * @param {string} [locale=this.locale] Locale to use for lookup.
+       * @param {string} [domain=this.domain] Language domain to use for lookup.
+       * @return {string|null} Translated message or `null` if not found.
+       */
+      getMsg: function(msgId, locale, domain) {
+        domain = domain || this.domain;
+        locale = locale || this.locale;
+
+        if (!this.domains[domain] || !this.domains[domain].locales[locale]) {
+          return null;
+        }
+
+        var lang = this.domains[domain].locales[locale];
+        if (lang[msgId]) {
+          return lang[msgId];
+        }
+        return null;
+      },
+
+      /**
+       * Returns all messages of a locale.
+       * @method getLocale
+       * @param {string} [locale=this.locale] Locale to use for lookup.
+       * @param {string} [domain=this.domain] Language domain to use for lookup.
+       * @return {Object|null} Object holding the translated messages or `null` if not found.
+       */
+      getLocale: function(locale, domain) {
+        domain = domain || this.domain;
+        locale = locale || this.locale;
+
+        if (!this.domains[domain] || !this.domains[domain].locales[locale]) {
+          return null;
+        }
+
+        return this.domains[domain].locales[locale];
+      },
+
+      /**
+       * Only fetch if a locale and a location is set.
+       */
+      _shouldFetch: function(newLocale, messagesUrl, src) {
+        if (this.getLocale(newLocale) != null) {
+          this.domains[this.domain].activeLocale = newLocale;
+          this._updateInstances(newLocale);
+          this.fire('fs-i18n-locale-ready', { 'domain': this.domain, 'locale': newLocale });
+          return;
+        }
+
+        if (src) return false;
+        
+        this.async(function() {
+          this._fetchLocale(newLocale);
+        });
+      },
+
+      /**
+       * Fetch locale file after the messages url was changed.
+       */
+      _messagesUrlChanged: function(newUrl, oldUrl) {
+        if (oldUrl) {
+          this.async(function () {
+            // Forced fetch of the locale file.
+            this._fetchLocale(this.locale, true);
+          });
+        }
+      },
+
+      _srcChanged: function(src) {
+        if (!src) return;
+        if (!this.domains) this.domains = {};
+        if (!this.domains[this.domain]) this.domains[this.domain] = {
+          activeLocale: this.locale,
+          locales: {},
+          instances: []
+        };
+        this.domains[this.domain].locales = src;
+      },
+
+      /**
+       * Uses `iron-ajax` to fetch the locale file.
+       */
+      _fetchLocale: function(locale, force) {
+        if (this.getLocale(locale) != null && force !== true) {
+          return; // Don't fetch if the locale is already defined in the global object.
+        }
+
+        // Initiate or get the domain object
+        var domainObj = this.domains[this.domain] || {
+          locales: {},
+          instances: []
+        };
+
+        // Set the locale we're about to fetch. This prevents duplicate requests by other `<fs-i18n-src>` elements.
+        domainObj.locales[locale] = {};
+        this.domains[this.domain] = domainObj;
+
+        var domain = this.domain != 'default' ? this.domain + '_' : '';
+        var url = this.messagesUrl + '/' + domain + locale + '.json';
+        this.$.ajax.url = url;
+        var request = this.$.ajax.generateRequest();
+        request.locale = locale;
+      },
+
+      /**
+       * Add the fetched locale to the `I18nCache` global and update instances.
+       */
+      _handleResponse: function(response) {
+        var locale = response.detail.locale;
+        this.domains[this.domain].locales[locale] = response.detail.response;
+        this.domains[this.domain].activeLocale = locale;
+        this._updateInstances(locale);
+
+        this.fire('fs-i18n-locale-ready', { 'domain': this.domain, 'locale': locale });
+      },
+
+      /**
+       * Notify all `<fs-i18n>` instances of a particular language domain that they should update themselfs.
+       */
+      _updateInstances: function(locale) {
+        var instances = this.domains[this.domain].instances;
+        for (var i = 0, instance; instance = instances[i]; ++i) {
+          instance.update(locale);
+        }
+      }
+    });
+  })();
+</script>

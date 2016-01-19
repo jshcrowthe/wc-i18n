@@ -1,0 +1,274 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../dom-purify/dom-purify-behavior.html">
+<link rel="import" href="./fs-i18n-src.html">
+<link rel="import" href="./fs-i18n-behavior.html">
+
+<!--
+# <fs-i18n>
+These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg) and were based on the `<i18-n>` and 
+`<i18-n-domain>` components written by p.kaske.
+
+The system consists of two elements working together: `<fs-i18n>` and `<fs-i18n-src>`
+
+All `<fs-i18n>` elements replace their content with translated strings from a `I18nCache` global, filled by `<fs-i18n-src>` element(s).
+`<fs-i18n>` elements can also define a language domain they belong to and will only be filled with translation string from that domain.
+
+<strong>Notes:</strong>
+- The language to display isn't set on the `<fs-i18n>` elements but on the `<fs-i18n-src>`.
+- All assigned `<fs-i18n>` elements are automatically updated after the locale was changed on the domain element.
+- Each `<fs-i18n>` kowns three modes: `Simple` mode, `Simple Provider` mode and `List Provider` mode. See examples how it works.
+
+## Example: Simple Mode
+
+That is, `<fs-i18n>` translates exactly one message and displays it.
+
+1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<fs-i18n>` will use the german translations.
+2. Throw `<fs-i18n>` element on your page. Optionally with a domain (by default they belong to `default`).
+
+```html
+<fs-i18n-src
+  messages-url="path/to/locales"
+  locale="de"></fs-i18n-src>
+
+<fs-i18n-src
+  messages-url="path/to/some/other/locales"
+  domain="foobar"
+  locale="de"></fs-i18n-src>
+
+<p>
+  <fs-i18n key="welcome-text">This will be replaced with the welcome text from the default domain.</fs-i18n>
+</p>
+<p>
+  <fs-i18n key="foobar.welcome-text">This will be replaced from path/to/locales/foobar-de.json</fs-i18n>
+</p>
+```
+
+## Example: Provider Mode
+
+That is, `<fs-i18n>` translates exactly one message but doesn't displays it.
+Instead you use its `value` attribute to do something with the translated string, like injecting it into an attribute of another element.
+
+```html
+Create your fs-i18n-src element here (see first example)
+
+<p>
+  The label is set by the fs-i18n.
+  <paper-input label="[[username]]"></paper-input>
+</p>
+<p>
+  This fs-i18n doesn't show the translation but you can use it's *value* attribute.
+  <fs-i18n provider key="foobar.username" value="{{username}}"></fs-i18n>
+</p>
+```
+
+## Example: List Provider Mode
+
+That is, `<fs-i18n>` translates a list of message. It doesn't show the list, but you can access it via the `value` property.
+In this mode the `msgid` property is ignored. Instead use the `provide` property to define the list you need.
+
+```html
+Create your fs-i18n-src element here (see first example)
+
+<p>
+  The label is set by the fs-i18n.
+  <paper-input label="[[translations.username]]"></paper-input>
+  <paper-input label="[[translations.password]]"></paper-input>
+</p>
+<p>
+  This fs-i18n provides a list of translations.
+  <fs-i18n provider provide='["username", "password"]' value="{{translations}}"></fs-i18n>
+  `translations' equals: 
+    { 
+      "username" : "...", 
+      "password" : "..." 
+    }
+
+  Alternatively you can set 'provide' to '["*"]' and get all translations.
+  <fs-i18n provider provide='["*"]' value="{{allStrings}}"></fs-i18n>
+  'allStrings' equals: 
+    { 
+      "translation1" : "...", 
+      "translation2" : "...", 
+      "translation3" : "...", 
+      "username" : "...", 
+      "password" : "..." 
+    }
+</p>
+```
+
+@element fs-i18n
+@demo demo/index.html
+@homepage http://familysearchelements.github.io/fs-i18n
+-->
+<dom-module id="fs-i18n"></dom-module>
+<script>
+  Polymer({
+    is: 'fs-i18n',
+
+    behaviors: [
+      Polymer.DomPurifyBehavior   /* Use the dom-purify-behavior to sanitize any html before it goes live. */
+    ],
+
+    properties: {
+      /**
+       * Use `component-name.key` or just `key` to use default domain.
+       */
+      key: {
+        type: String,
+        value: null
+      },
+
+      _msgid: {
+        type: String,
+        computed: '_computeMsgid(key)'
+      },
+
+      /**
+       * Language domain the element belongs to.
+       * Only translation strings of that domain will be used.
+       */
+      _domain: {
+        type: String,
+        computed: '_computeDomain(key)'
+      },
+
+      /**
+       * If true, the element acts as a provider.
+       * Depending on `provide` and `msgid` it acts as a simple provider or list provider.
+       */
+      provider: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Array of msgid's the element should translate and provide in its `value` property.
+       * If first value equals '*' all translations are provided.
+       */
+      provide: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+
+      /**
+       * Holds translated message or an object with all requested translations,
+       * depending on the mode the element operates in.
+       */
+      value: {
+        type: String,
+        value: null,
+        readOnly: true,
+        notify: true
+      }
+    },
+
+    // Holds reference to the global `I18nCache.domains` object
+    get domains() {
+      return window.I18nCache.domains;
+    },
+
+    /**
+     * Check if at least one `<fs-i18n-src>` elements exists.
+     * Register the element for the right language domain, so it's gets updated with translation strings.
+     */
+    ready: function() {
+      if (!window.I18nCache) {
+        console.warn(this.localName + ': Global I18nCache object missing. Have you added at least one fs-i18n-domain element?');
+        return;
+      }
+
+      this.domains = window.I18nCache.domains;
+      if (!this.domains[this._domain]) {
+        this.domains[this._domain] = {
+          locales: {},
+          instances: []
+        };
+      }
+    },
+
+    attached: function() {
+      // Register instance to the domain.
+      this.domains[this._domain].instances.push(this);
+
+      var locale = this.domains[this._domain].activeLocale || 'en';
+
+      // Update the content already here if the locale is already loaded.
+      if (this.domains[this._domain].locales[locale]) {
+        this.update(locale);
+      }
+    },
+
+    detached: function() {
+      var instances = this.domains[this._domain].instances;
+      for (var i = 0, li = instances.length; i < li; ++i) {
+        if (instances[i] === this) {
+          instances.splice(i, 1);
+          break;
+        }
+      }
+    },
+
+    _computeMsgid: function(key) {
+      if (!key) return console.warn(this.localName + ':', 'cannot compute msgid, value of key is null');
+      if (!~key.indexOf('.')) return key;
+      key = key.split('.')
+      key.shift();
+      return key.join('.');
+    },
+
+    _computeDomain: function(key) {
+      if (!key) return console.warn(this.localName + ':', 'cannot compute domain, value of key is null');
+      if (!~key.indexOf('.')) return 'default';
+      return key.split('.')[0];
+    },
+
+    /**
+     * Get the translation string and replace the content of the element.
+     * `dom-purify-behavior` is used to sanitize the html before it's inserted.
+     */
+    update: function(locale) {
+      this.async(function() {
+        if (this.provider && this.provide.length > 0) {
+          this._updateProvider(locale);
+          return;
+        }
+
+        var msg = this.domains[this._domain].locales[locale][this._msgid];
+        if (msg) {
+          this._setValue(this.sanitizeHtml(msg));
+          if (!this.provider) {
+            this.innerHTML = this.value;
+          }
+        } else {
+          console.warn(this.localName + ': "' + this._msgid + '" message id was not found');
+        }
+      }.bind(this));
+    },
+
+    _updateProvider: function(locale) {
+      var locale = this.domains[this._domain].locales[locale];
+      var values = {};
+
+      if (this.provide[0] == '*') {
+        for (var m in locale) {
+          values[m] = this.sanitizeHtml(locale[m].message);
+        }
+      } else {
+        for (var i in this.provide) {
+          var msgId = this.provide[i];
+          var msg = locale[msgId];
+          if (!msg) {
+            console.warn(this.localName + ': "' + msgId + '" message id was not found');
+            continue;
+          }
+
+          values[msgId] = this.sanitizeHtml(msg);
+        }
+      }
+
+      this._setValue(values);
+    }
+  });
+</script>

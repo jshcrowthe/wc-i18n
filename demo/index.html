@@ -1,0 +1,95 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>fs-i18n demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="../fs-i18n.html">
+    <link rel="import" href="../fs-i18n-src.html">
+    <link rel="import" href="./demo-comp/demo-comp.html">
+  </head>
+  <body>
+    <!-- Provides the 'default' domain in english -->
+    <fs-i18n-src id="i18nDomain"
+      messages-url="locales">
+    </fs-i18n-src>
+
+    <!-- Provides the 'demo-domain' domain in german -->
+    <fs-i18n-src id="demoDomain"
+      domain="demo-domain"
+      locale="de"
+      messages-url="locales">
+    </fs-i18n-src>
+
+    <!-- Provides the 'existing-domain' domain for all languages via a src attribute-->
+    <fs-i18n-src id="existingDomain"
+      domain="existing-domain" src-locales='{"ko":{"hi":"안녕하세요"},"de":{"hi":"Gutentag"},"en":{"hi":"Hello"}}'>
+    </fs-i18n-src>
+
+    <div>
+      <label for="">Choose language for default domain</label>
+      <select id="langSelector">
+        <option selected>en</option>
+        <option>es</option>
+        <option>fr</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="">Choose language for 'demo-domain' domain</label>
+      <select id="langSelectorDomain">
+        <option>en</option>
+        <option selected>de</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="">Choose language for 'existing-domain' domain</label>
+      <select id="existingDomainSelector">
+        <option selected>en</option>
+        <option>de</option>
+        <option>ko</option>
+      </select>
+    </div>
+
+    <p style="margin-top: 50px;">Locale domain: <strong>default</strong></p>
+    <fs-i18n key="welcome">This is some placeholder text. It's msgid is 'welcome'.</fs-i18n>
+
+    <p style="margin-top: 50px;">Locale domain: <strong>demo-domain</strong></p>
+    <fs-i18n key="demo-domain.special">The special text will appear here...</fs-i18n>
+
+    <p style="margin-top: 50px;">Locale domain: <strong>existing-domain</strong></p>
+    <fs-i18n key="existing-domain.hi">Standby text for existing src</fs-i18n>
+
+    <p style="margin-top: 50px;">Using a <strong>&lt;demo-comp&gt;</strong> component</p>
+    <demo-comp></demo-comp>
+
+    <script>
+      var i18nDomain = document.querySelector('#i18nDomain');
+      var demoDomain = document.querySelector('#demoDomain');
+      var existingDomain = document.querySelector('#existingDomain');
+      var langSelector = document.querySelector('#langSelector');
+      var langSelectorDemo = document.querySelector('#langSelectorDomain');
+      var existingDomainSelector = document.querySelector('#existingDomainSelector');
+
+      langSelector.addEventListener('change', function() {
+        i18nDomain.locale = this.value;
+      });
+
+      existingDomainSelector.addEventListener('change', function() {
+        existingDomain.locale = this.value;
+      });
+
+      langSelectorDemo.addEventListener('change', function() {
+        demoDomain.locale = this.value;
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "name": "fs-i18n",
+  "version": "0.1.0",
+  "authors": [
+    "Josh Crowther <jshcrowthe@gmail.com>"
+  ],
+  "description": "Translation elements build with polymer.",
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "i18n",
+    "i10n",
+    "localization",
+    "internationalization",
+    "translation"
+  ],
+  "main": "i18-n-domain.html",
+  "license": "MIT",
+  "homepage": "https://github.com/FamilySearchElements/fs-i18n/",
+  "ignore": [
+    "/.*",
+    "/tests/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
+    "dom-purify": "pkaske/dom-purify#^0.1.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "Polymer/web-component-tester#master"
+  }
+}

@@ -1,0 +1,21 @@
+<link rel="import" href="../../fs-i18n.html">
+
+<dom-module id="demo-comp">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <fs-i18n-src messages-url='[[_localeUrl]]' domain='demo-comp'></fs-i18n-src>
+    <fs-i18n key='demo-comp.foo'></fs-i18n>
+  </template>
+  <script>
+    Polymer({
+      is: 'demo-comp',
+      behaviors: [
+        FSI18nBehavior
+      ]
+    });
+  </script>
+</dom-module>

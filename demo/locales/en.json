@@ -1,0 +1,3 @@
+{
+  "welcome": "Welcome to this demo!<br>Have <a href=\"#\" onclick=\"alert('bad stuff is going to happen...');\">fun!</a>"
+}
