@@ -1,82 +1,82 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../dom-purify/dom-purify-behavior.html">
-<link rel="import" href="./fs-i18n-src.html">
-<link rel="import" href="./fs-i18n-behavior.html">
+<link rel="import" href="./wc-i18n-src.html">
+<link rel="import" href="./wc-i18n-behavior.html">
 
 <!--
-# <fs-i18n>
+# <wc-i18n>
 These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg) and were based on the `<i18-n>` and 
 `<i18-n-domain>` components written by p.kaske.
 
-The system consists of two elements working together: `<fs-i18n>` and `<fs-i18n-src>`
+The system consists of two elements working together: `<wc-i18n>` and `<wc-i18n-src>`
 
-All `<fs-i18n>` elements replace their content with translated strings from a `I18nCache` global, filled by `<fs-i18n-src>` element(s).
-`<fs-i18n>` elements can also define a language domain they belong to and will only be filled with translation string from that domain.
+All `<wc-i18n>` elements replace their content with translated strings from a `I18nCache` global, filled by `<wc-i18n-src>` element(s).
+`<wc-i18n>` elements can also define a language domain they belong to and will only be filled with translation string from that domain.
 
 <strong>Notes:</strong>
-- The language to display isn't set on the `<fs-i18n>` elements but on the `<fs-i18n-src>`.
-- All assigned `<fs-i18n>` elements are automatically updated after the locale was changed on the domain element.
-- Each `<fs-i18n>` kowns three modes: `Simple` mode, `Simple Provider` mode and `List Provider` mode. See examples how it works.
+- The language to display isn't set on the `<wc-i18n>` elements but on the `<wc-i18n-src>`.
+- All assigned `<wc-i18n>` elements are automatically updated after the locale was changed on the domain element.
+- Each `<wc-i18n>` kowns three modes: `Simple` mode, `Simple Provider` mode and `List Provider` mode. See examples how it works.
 
 ## Example: Simple Mode
 
-That is, `<fs-i18n>` translates exactly one message and displays it.
+That is, `<wc-i18n>` translates exactly one message and displays it.
 
-1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<fs-i18n>` will use the german translations.
-2. Throw `<fs-i18n>` element on your page. Optionally with a domain (by default they belong to `default`).
+1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<wc-i18n>` will use the german translations.
+2. Throw `<wc-i18n>` element on your page. Optionally with a domain (by default they belong to `default`).
 
 ```html
-<fs-i18n-src
+<wc-i18n-src
   messages-url="path/to/locales"
-  locale="de"></fs-i18n-src>
+  locale="de"></wc-i18n-src>
 
-<fs-i18n-src
+<wc-i18n-src
   messages-url="path/to/some/other/locales"
   domain="foobar"
-  locale="de"></fs-i18n-src>
+  locale="de"></wc-i18n-src>
 
 <p>
-  <fs-i18n key="welcome-text">This will be replaced with the welcome text from the default domain.</fs-i18n>
+  <wc-i18n key="welcome-text">This will be replaced with the welcome text from the default domain.</wc-i18n>
 </p>
 <p>
-  <fs-i18n key="foobar.welcome-text">This will be replaced from path/to/locales/foobar-de.json</fs-i18n>
+  <wc-i18n key="foobar.welcome-text">This will be replaced from path/to/locales/foobar-de.json</wc-i18n>
 </p>
 ```
 
 ## Example: Provider Mode
 
-That is, `<fs-i18n>` translates exactly one message but doesn't displays it.
+That is, `<wc-i18n>` translates exactly one message but doesn't displays it.
 Instead you use its `value` attribute to do something with the translated string, like injecting it into an attribute of another element.
 
 ```html
-Create your fs-i18n-src element here (see first example)
+Create your wc-i18n-src element here (see first example)
 
 <p>
-  The label is set by the fs-i18n.
+  The label is set by the wc-i18n.
   <paper-input label="[[username]]"></paper-input>
 </p>
 <p>
-  This fs-i18n doesn't show the translation but you can use it's *value* attribute.
-  <fs-i18n provider key="foobar.username" value="{{username}}"></fs-i18n>
+  This wc-i18n doesn't show the translation but you can use it's *value* attribute.
+  <wc-i18n provider key="foobar.username" value="{{username}}"></wc-i18n>
 </p>
 ```
 
 ## Example: List Provider Mode
 
-That is, `<fs-i18n>` translates a list of message. It doesn't show the list, but you can access it via the `value` property.
+That is, `<wc-i18n>` translates a list of message. It doesn't show the list, but you can access it via the `value` property.
 In this mode the `msgid` property is ignored. Instead use the `provide` property to define the list you need.
 
 ```html
-Create your fs-i18n-src element here (see first example)
+Create your wc-i18n-src element here (see first example)
 
 <p>
-  The label is set by the fs-i18n.
+  The label is set by the wc-i18n.
   <paper-input label="[[translations.username]]"></paper-input>
   <paper-input label="[[translations.password]]"></paper-input>
 </p>
 <p>
-  This fs-i18n provides a list of translations.
-  <fs-i18n provider provide='["username", "password"]' value="{{translations}}"></fs-i18n>
+  This wc-i18n provides a list of translations.
+  <wc-i18n provider provide='["username", "password"]' value="{{translations}}"></wc-i18n>
   `translations' equals: 
     { 
       "username" : "...", 
@@ -84,7 +84,7 @@ Create your fs-i18n-src element here (see first example)
     }
 
   Alternatively you can set 'provide' to '["*"]' and get all translations.
-  <fs-i18n provider provide='["*"]' value="{{allStrings}}"></fs-i18n>
+  <wc-i18n provider provide='["*"]' value="{{allStrings}}"></wc-i18n>
   'allStrings' equals: 
     { 
       "translation1" : "...", 
@@ -96,14 +96,14 @@ Create your fs-i18n-src element here (see first example)
 </p>
 ```
 
-@element fs-i18n
+@element wc-i18n
 @demo demo/index.html
-@homepage http://familysearchelements.github.io/fs-i18n
+@homepage http://jshcrowthe.github.io/wc-i18n
 -->
-<dom-module id="fs-i18n"></dom-module>
+<dom-module id="wc-i18n"></dom-module>
 <script>
   Polymer({
-    is: 'fs-i18n',
+    is: 'wc-i18n',
 
     behaviors: [
       Polymer.DomPurifyBehavior   /* Use the dom-purify-behavior to sanitize any html before it goes live. */
@@ -170,12 +170,12 @@ Create your fs-i18n-src element here (see first example)
     },
 
     /**
-     * Check if at least one `<fs-i18n-src>` elements exists.
+     * Check if at least one `<wc-i18n-src>` elements exists.
      * Register the element for the right language domain, so it's gets updated with translation strings.
      */
     ready: function() {
       if (!window.I18nCache) {
-        console.warn(this.localName + ': Global I18nCache object missing. Have you added at least one fs-i18n-domain element?');
+        console.warn(this.localName + ': Global I18nCache object missing. Have you added at least one wc-i18n-domain element?');
         return;
       }
 

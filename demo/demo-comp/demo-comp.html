@@ -1,4 +1,4 @@
-<link rel="import" href="../../fs-i18n.html">
+<link rel="import" href="../../wc-i18n.html">
 
 <dom-module id="demo-comp">
   <template>
@@ -7,14 +7,14 @@
         display: block;
       }
     </style>
-    <fs-i18n-src messages-url='[[_localeUrl]]' domain='demo-comp'></fs-i18n-src>
-    <fs-i18n key='demo-comp.foo'></fs-i18n>
+    <wc-i18n-src messages-url='[[_localeUrl]]' domain='demo-comp'></wc-i18n-src>
+    <wc-i18n key='demo-comp.foo'></wc-i18n>
   </template>
   <script>
     Polymer({
       is: 'demo-comp',
       behaviors: [
-        FSI18nBehavior
+        WCI18nBehavior
       ]
     });
   </script>

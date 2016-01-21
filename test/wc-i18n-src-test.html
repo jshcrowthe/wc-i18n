@@ -17,20 +17,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="../../web-component-tester/browser.js"></script>
 
     <!-- Step 1: import the element to test -->
-    <link rel="import" href="../fs-i18n.html">
+    <link rel="import" href="../wc-i18n.html">
   </head>
   <body>
 
     <!-- You can use the document as a place to set up your fixtures. -->
-    <test-fixture id="blank-fs-i18n-fixture">
+    <test-fixture id="blank-wc-i18n-fixture">
       <template>
-        <fs-i18n-src></fs-i18n-src>
+        <wc-i18n-src></wc-i18n-src>
       </template>
     </test-fixture>
 
-    <test-fixture id="sourced-fs-i18n-fixture">
+    <test-fixture id="sourced-wc-i18n-fixture">
       <template>
-        <fs-i18n-src src-locales='{"en":{"hello-msg":"Hello!"},"ko":{"hello-msg":"안녕하세요!"},"fr":{"hello-msg":"Bonjour!"},"de":{"hello-msg":"Gutentag!"}}'></fs-i18n-src>
+        <wc-i18n-src src-locales='{"en":{"hello-msg":"Hello!"},"ko":{"hello-msg":"안녕하세요!"},"fr":{"hello-msg":"Bonjour!"},"de":{"hello-msg":"Gutentag!"}}'></wc-i18n-src>
       </template>
     </test-fixture>
 
@@ -42,8 +42,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var blankEl, sourcedEl;
 
           setup(function() {
-            blankEl = fixture('blank-fs-i18n-fixture');
-            sourcedEl = fixture('sourced-fs-i18n-fixture');
+            blankEl = fixture('blank-wc-i18n-fixture');
+            sourcedEl = fixture('sourced-wc-i18n-fixture');
           });
 
           /**

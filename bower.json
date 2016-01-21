@@ -1,5 +1,5 @@
 {
-  "name": "fs-i18n",
+  "name": "wc-i18n",
   "version": "0.1.0",
   "authors": [
     "Josh Crowther <jshcrowthe@gmail.com>"
@@ -17,7 +17,7 @@
   ],
   "main": "i18-n-domain.html",
   "license": "MIT",
-  "homepage": "https://github.com/FamilySearchElements/fs-i18n/",
+  "homepage": "https://github.com/jshcrowthe/wc-i18n/",
   "ignore": [
     "/.*",
     "/tests/"
