@@ -165,7 +165,7 @@ Create your wc-i18n-src element here (see first example)
     },
 
     // Holds reference to the global `WCI18n.domains` object
-    get domains() {
+    get _domains() {
       return window.WCI18n.domains;
     },
 
@@ -179,9 +179,9 @@ Create your wc-i18n-src element here (see first example)
         return;
       }
 
-      this.domains = window.WCI18n.domains;
-      if (!this.domains[this._domain]) {
-        this.domains[this._domain] = {
+      this._domains = window.WCI18n.domains;
+      if (!this._domains[this._domain]) {
+        this._domains[this._domain] = {
           locales: {},
           instances: []
         };
@@ -190,18 +190,18 @@ Create your wc-i18n-src element here (see first example)
 
     attached: function() {
       // Register instance to the domain.
-      this.domains[this._domain].instances.push(this);
+      this._domains[this._domain].instances.push(this);
 
-      var locale = this.domains[this._domain].activeLocale || 'en';
+      var locale = this._domains[this._domain].activeLocale || 'en';
 
       // Update the content already here if the locale is already loaded.
-      if (this.domains[this._domain].locales[locale]) {
+      if (this._domains[this._domain].locales[locale]) {
         this.update(locale);
       }
     },
 
     detached: function() {
-      var instances = this.domains[this._domain].instances;
+      var instances = this._domains[this._domain].instances;
       for (var i = 0, li = instances.length; i < li; ++i) {
         if (instances[i] === this) {
           instances.splice(i, 1);
@@ -235,7 +235,7 @@ Create your wc-i18n-src element here (see first example)
           return;
         }
 
-        var msg = this.domains[this._domain].locales[locale][this._msgid];
+        var msg = this._domains[this._domain].locales[locale][this._msgid];
         if (msg) {
           this._setValue(this.sanitizeHtml(msg));
           if (!this.provider) {
@@ -248,7 +248,7 @@ Create your wc-i18n-src element here (see first example)
     },
 
     _updateProvider: function(locale) {
-      var locale = this.domains[this._domain].locales[locale];
+      var locale = this._domains[this._domain].locales[locale];
       var values = {};
 
       if (this.provide[0] == '*') {
