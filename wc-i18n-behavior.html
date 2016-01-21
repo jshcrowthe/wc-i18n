@@ -1,12 +1,7 @@
 <script>
   window.WCI18nBehavior = {
-    properties: {
-      _localeUrl: {
-        type: String,
-        value: function() {
-          return this.resolveUrl('./locales');
-        }
-      }
+    _localeDir: function() {
+      return this.resolveUrl('./locales');
     }
   };
 </script>

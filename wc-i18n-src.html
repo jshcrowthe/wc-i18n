@@ -68,7 +68,7 @@ See the comments on the `<wc-i18n>` element for a simple example.
       is: 'wc-i18n-src',
 
       /**
-       * The `wc-i18n-lang-ready` is fired after a locale was fetched and all `<i18n-msg>` elements were updated.
+       * The `wc-i18n-lang-ready` is fired after a locale was fetched and all `<wc-i18n>` elements were updated.
        *
        * @event wc-i18n-lang-ready
        * @detail {{locale: String}}
@@ -183,8 +183,8 @@ See the comments on the `<wc-i18n>` element for a simple example.
        * Returns all available keys for a given locale.
        * 
        * @method getLocale
-       * @param {string} [locale=this.locale] Locale to use for lookup.
-       * @param {string} [domain=this.domain] Language domain to use for lookup.
+       * @param {string} locale Locale to use for lookup.
+       * @param {string} domain Language domain to use for lookup.
        * @return {Object|null} Object holding the translated messages or `null` if not found.
        */
       getLocale: function(locale, domain) {
