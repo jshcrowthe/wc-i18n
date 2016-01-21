@@ -3,7 +3,7 @@
 
 This pair of components will handle translations at the component level.
 
-Based on Eric Bidelman's awesome [i18n-msg](https://github.com/ebidel/i18n-msg) element and Peter Kaske's [i18-n](https://github.com/pkaske/i18-n) element.
+Inspired by Eric Bidelman's [i18n-msg](https://github.com/ebidel/i18n-msg) element and originally forked from Peter Kaske's [i18-n](https://github.com/pkaske/i18-n) element.
 
 ## Docs & Demo
 
