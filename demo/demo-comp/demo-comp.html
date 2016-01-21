@@ -7,7 +7,8 @@
         display: block;
       }
     </style>
-    <wc-i18n-src locale-dir='[[_localeUrl]]' domain='demo-comp'></wc-i18n-src>
+    <!-- <wc-i18n-src locale-map='[[_localeMapper()]]' locale-dir='[[_localeUrl]]' domain='demo-comp'></wc-i18n-src> -->
+    <wc-i18n-src locale-map='[[_localeMapper()]]' domain='demo-comp' src-locales='{  "foo": {    "description": "...",    "message": "What does fubar actually stand for?"  }}'></wc-i18n-src>
     <wc-i18n key='demo-comp.foo'></wc-i18n>
   </template>
   <script>
@@ -15,7 +16,12 @@
       is: 'demo-comp',
       behaviors: [
         WCI18nBehavior
-      ]
+      ],
+      _localeMapper: function() {
+        return function(key) {
+          return key.message;
+        }
+      }
     });
   </script>
 </dom-module>

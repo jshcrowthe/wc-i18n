@@ -2,24 +2,27 @@
 
 <!--
 # <wc-i18n-src>
-These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg) and were based on the `<i18-n>` and 
-`<i18-n-domain>` components written by p.kaske.
+This element was inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg) as well as the `<i18-n-src>` component written by [p.kaske](https://github.com/pkaske/i18-n).
 
-The system consists of two elements working together: `<wc-i18n>` and `<wc-i18n-src>`
+This solution introduces two elements that provide sourcing and consumption of internationalized strings (respectivly): `<wc-i18n-src>` and `<wc-i18n>`
 
-You need at least one `<wc-i18n-src>` in your document. It loads the locale file via `<iron-ajax>` and fills a `WCI18n` global with the translation strings.
-As the name suggests, this element also provides a language domain (named `default` if no other was set).
+You need at least one `<wc-i18n-src>` in your document. It loads the locales via one of two methods: `AJAX` or manual sourcing. `AJAX` is better suited for
+development as compiling and injecting the strings into the `<wc-i18n-src>` tag on every save, though doable, can be tedious. Manual sourcing is better suited
+for production as it removes the network overhead/delay associated with fetching locale files for each component on the page.
 
-`<wc-i18n>` elements can define a language domain they belong to and will only be filled with translation string from that domain.
+This element also provides language domains (Uses the `default` domain if no other was set) to allow you to have several different sets of translations
+living on the same page.
+
+`<wc-i18n>` elements define a language domain they belong to and will only be filled with translation string from that domain.
 
 The domain element provides some public methods to get translation strings.
 
 <strong>Note:</strong> Locale files are only fetched once.
 
-Locale files of the `default` domain must use the locale as the filename:
+Locale files of the `default` domain will use the locale as the filename:
 `locales/en.json`, `locales/de.json`, `locales/fr.json`
 
-Locale files of any domain other than `default` must prepend the domain name followed by an `_`:
+Locale files of any domain other than `default` must prepend the domain name, followed by an `_`, before the locale:
 
 "`locales/mydomain_en.json`", "`locales/mydomain_de.json`" or "`locales/mydomain_fr.json`"
 
@@ -50,7 +53,7 @@ See the comments on the `<wc-i18n>` element for a simple example.
     /**
      * The global cache for all locales loaded.
      */
-    window.WCI18n = window.WCI18n || {
+    window._WCI18n = window._WCI18n || {
       // The default domain is named 'default'
       domains: {
         'default': {
@@ -65,9 +68,9 @@ See the comments on the `<wc-i18n>` element for a simple example.
       is: 'wc-i18n-src',
 
       /**
-       * The `wc-i18n-locale-ready` is fired after the locale was fetched and all `<i18n-msg>` elements were updated.
+       * The `wc-i18n-lang-ready` is fired after a locale was fetched and all `<i18n-msg>` elements were updated.
        *
-       * @event wc-i18n-locale-ready
+       * @event wc-i18n-lang-ready
        * @detail {{locale: String}}
        */
 
@@ -114,6 +117,14 @@ See the comments on the `<wc-i18n>` element for a simple example.
         },
 
         /**
+         * A map function to allow for different locale storage formats
+         */
+        localeMap: {
+          type: Function,
+          value: null
+        },
+
+        /**
          * An object containing the source locales for the given domain. Formatted
          * as follows:
          * 
@@ -137,21 +148,23 @@ See the comments on the `<wc-i18n>` element for a simple example.
       },
 
       observers: [
-        '_tryFetchLocale(locale, localeDir, srcLocales)'
+        '_tryFetchLocale(locale, localeDir, srcLocales)',
+        '_srcChanged(srcLocales, localeMap)'
       ],
 
-      // Reference to the global `WCI18n.domains` object
-      _domains: window.WCI18n.domains,
+      // Reference to the global `_WCI18n.domains` object
+      _domains: window._WCI18n.domains,
 
       /**
        * Returns a message in the chosen locale and domain.
+       * 
        * @method getMsg
-       * @param {string} msgId Message id for translation string lookup.
-       * @param {string} [locale=this.locale] Locale to use for lookup.
-       * @param {string} [domain=this.domain] Language domain to use for lookup.
+       * @param {string} key Key for translation string lookup.
+       * @param {string} locale Locale to use for lookup.
+       * @param {string} domain Language domain to use for lookup.
        * @return {string|null} Translated message or `null` if not found.
        */
-      getMsg: function(msgId, locale, domain) {
+      getKey: function(key, locale, domain) {
         domain = domain || this.domain;
         locale = locale || this.locale;
 
@@ -160,14 +173,15 @@ See the comments on the `<wc-i18n>` element for a simple example.
         }
 
         var lang = this._domains[domain].locales[locale];
-        if (lang[msgId]) {
-          return lang[msgId];
+        if (lang[key]) {
+          return lang[key];
         }
         return null;
       },
 
       /**
-       * Returns all messages of a locale.
+       * Returns all available keys for a given locale.
+       * 
        * @method getLocale
        * @param {string} [locale=this.locale] Locale to use for lookup.
        * @param {string} [domain=this.domain] Language domain to use for lookup.
@@ -191,7 +205,10 @@ See the comments on the `<wc-i18n>` element for a simple example.
         if (this.getLocale(newLocale) != null) {
           this._domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
-          this.fire('wc-i18n-locale-ready', { 'domain': this.domain, 'locale': newLocale });
+          this.fire('wc-i18n-lang-ready', { 
+            'domain': this.domain, 
+            'locale': newLocale 
+          });
           return;
         }
 
@@ -214,7 +231,8 @@ See the comments on the `<wc-i18n>` element for a simple example.
         }
       },
 
-      _srcChanged: function(src) {
+      _srcChanged: function() {
+        var src = this.srcLocales;
         if (!src) return;
         if (!this._domains) this._domains = {};
         if (!this._domains[this.domain]) this._domains[this.domain] = {
@@ -222,6 +240,16 @@ See the comments on the `<wc-i18n>` element for a simple example.
           locales: {},
           instances: []
         };
+
+        // Map each locale if `localeMap` prop exists
+        if (typeof this.localeMap === 'function') {
+          Object.keys(src).forEach(function(lang) {
+            Object.keys(src[lang]).forEach(function(key) {
+              src[lang][key] = this.localeMap(src[lang][key]);
+            }.bind(this));
+          }.bind(this));
+        }
+
         this._domains[this.domain].locales = src;
       },
 
@@ -249,15 +277,26 @@ See the comments on the `<wc-i18n>` element for a simple example.
         xhr.open('GET', url);
 
         xhr.onload = function(e) {
-          if (e.target.status !== 200) {
+          // Bail if status is not 200
+          if (e.target.status !== 200) return;
+
+          try {
+            var response = JSON.parse(e.target.response);
+          } catch(e) {
+            console.error('ERROR: wc-i18n-src was unable to parse response body for', url);
             return;
           }
-          var response = JSON.parse(e.target.response);
           
+          if (typeof this.localeMap === 'function') {
+            Object.keys(response).forEach(function(key) {
+              response[key] = this.localeMap(response[key]);
+            }.bind(this));
+          }
+
           this._domains[this.domain].locales[locale] = response;
           this._domains[this.domain].activeLocale = locale;
           this._updateInstances(locale);
-          this.fire('wc-i18n-locale-ready', { 'domain': this.domain, 'locale': locale });
+          this.fire('wc-i18n-lang-ready', { 'domain': this.domain, 'locale': locale });
 
         }.bind(this);
 
