@@ -10,7 +10,7 @@ These elements were heavily inspired by the `<i18n-msg>` element, written by [eb
 
 The system consists of two elements working together: `<wc-i18n>` and `<wc-i18n-src>`
 
-All `<wc-i18n>` elements replace their content with translated strings from a `I18nCache` global, filled by `<wc-i18n-src>` element(s).
+All `<wc-i18n>` elements replace their content with translated strings from a `WCI18n` global, filled by `<wc-i18n-src>` element(s).
 `<wc-i18n>` elements can also define a language domain they belong to and will only be filled with translation string from that domain.
 
 <strong>Notes:</strong>
@@ -164,9 +164,9 @@ Create your wc-i18n-src element here (see first example)
       }
     },
 
-    // Holds reference to the global `I18nCache.domains` object
+    // Holds reference to the global `WCI18n.domains` object
     get domains() {
-      return window.I18nCache.domains;
+      return window.WCI18n.domains;
     },
 
     /**
@@ -174,12 +174,12 @@ Create your wc-i18n-src element here (see first example)
      * Register the element for the right language domain, so it's gets updated with translation strings.
      */
     ready: function() {
-      if (!window.I18nCache) {
-        console.warn(this.localName + ': Global I18nCache object missing. Have you added at least one wc-i18n-domain element?');
+      if (!window.WCI18n) {
+        console.warn(this.localName + ': Global WCI18n object missing. Have you added at least one wc-i18n-domain element?');
         return;
       }
 
-      this.domains = window.I18nCache.domains;
+      this.domains = window.WCI18n.domains;
       if (!this.domains[this._domain]) {
         this.domains[this._domain] = {
           locales: {},

@@ -1,5 +1,4 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../iron-ajax/iron-ajax.html">
 
 <!--
 # <wc-i18n-src>
@@ -8,7 +7,7 @@ These elements were heavily inspired by the `<i18n-msg>` element, written by [eb
 
 The system consists of two elements working together: `<wc-i18n>` and `<wc-i18n-src>`
 
-You need at least one `<wc-i18n-src>` in your document. It loads the locale file via `<iron-ajax>` and fills a `I18nCache` global with the translation strings.
+You need at least one `<wc-i18n-src>` in your document. It loads the locale file via `<iron-ajax>` and fills a `WCI18n` global with the translation strings.
 As the name suggests, this element also provides a language domain (named `default` if no other was set).
 
 `<wc-i18n>` elements can define a language domain they belong to and will only be filled with translation string from that domain.
@@ -40,21 +39,18 @@ See the comments on the `<wc-i18n>` element for a simple example.
 @demo demo/index.html
 @homepage http://jshcrowthe.github.io/wc-i18n
 -->
-<dom-module id="wc-i18n-src">
-  <template>
-    <iron-ajax id="ajax"
-      url="{{messagesUrl}}"
-      handle-as="json"
-      on-response="_handleResponse"></iron-ajax>
-  </template>
-</dom-module>
+
 <script>
   (function () {
+
+    var _computeLocaleURI = function(localeDir, domain, locale) {
+      return localeDir + '/' + (domain != 'default' ? domain + '_' : '') + locale + '.json';
+    };
 
     /**
      * The global cache for all locales loaded.
      */
-    window.I18nCache = window.I18nCache || {
+    window.WCI18n = window.WCI18n || {
       // The default domain is named 'default'
       domains: {
         'default': {
@@ -77,7 +73,17 @@ See the comments on the `<wc-i18n>` element for a simple example.
 
       properties: {
         /**
-         * The domain the element serves.
+         * The domain the source element serves. The URL from which 
+         * locales are fetched is built by combining `localeDir`, `domain`,
+         * and `locale` to form a URI.
+         *
+         * `<localeDir>` / `<domain>` _ `<locale>` .json
+         *
+         * _NOTE: If the domain is set to `default` (the default value),
+         * the domain, and the underscore that follows it, are removed from
+         * the generated URI._
+         *
+         * _`<localeDir>` / `<locale>` .json_
          */
         domain: {
           type: String,
@@ -85,12 +91,11 @@ See the comments on the `<wc-i18n>` element for a simple example.
         },
 
         /**
-         * The default locale being used.
+         * The locale being used for this domain.
          */
         locale: {
           type: String,
           value: function() {
-            if (window.FS && typeof window.FS.simpleLocale === 'function') return FS.simpleLocale();
             var lang = window.navigator.language;
             if (lang) {
               return lang.match(/(\w{2})/)[1];
@@ -100,21 +105,26 @@ See the comments on the `<wc-i18n>` element for a simple example.
         },
 
         /**
-         * The folder name where the localized `<lang>.json` files are located.
+         * The directory where the localized `<lang>.json` files are located.
          */
-        messagesUrl: {
+        localeDir: {
           type: String,
           value: 'locales',
-          observer: '_messagesUrlChanged'
+          observer: '_localeDirChanged'
         },
 
         /**
-         * An object containing the source locales for the given domain. Looks like
-         * the following.
+         * An object containing the source locales for the given domain. Formatted
+         * as follows:
+         * 
          * ```
          * {
          *   "en": { ... },
+         *   "es": { ... },
+         *   "fr": { ... },
+         *   "de": { ... },
          *   "ko": { ... },
+         *   "ja": { ... },
          * }
          * ```
          * @type {Object}
@@ -127,11 +137,11 @@ See the comments on the `<wc-i18n>` element for a simple example.
       },
 
       observers: [
-        '_shouldFetch(locale, messagesUrl, srcLocales)'
+        '_tryFetchLocale(locale, localeDir, srcLocales)'
       ],
 
-      // Reference to the global `I18nCache.domains` object
-      domains: window.I18nCache.domains,
+      // Reference to the global `WCI18n.domains` object
+      _domains: window.WCI18n.domains,
 
       /**
        * Returns a message in the chosen locale and domain.
@@ -145,11 +155,11 @@ See the comments on the `<wc-i18n>` element for a simple example.
         domain = domain || this.domain;
         locale = locale || this.locale;
 
-        if (!this.domains[domain] || !this.domains[domain].locales[locale]) {
+        if (!this._domains[domain] || !this._domains[domain].locales[locale]) {
           return null;
         }
 
-        var lang = this.domains[domain].locales[locale];
+        var lang = this._domains[domain].locales[locale];
         if (lang[msgId]) {
           return lang[msgId];
         }
@@ -167,19 +177,19 @@ See the comments on the `<wc-i18n>` element for a simple example.
         domain = domain || this.domain;
         locale = locale || this.locale;
 
-        if (!this.domains[domain] || !this.domains[domain].locales[locale]) {
+        if (!this._domains[domain] || !this._domains[domain].locales[locale]) {
           return null;
         }
 
-        return this.domains[domain].locales[locale];
+        return this._domains[domain].locales[locale];
       },
 
       /**
        * Only fetch if a locale and a location is set.
        */
-      _shouldFetch: function(newLocale, messagesUrl, src) {
+      _tryFetchLocale: function(newLocale, localeDir, src) {
         if (this.getLocale(newLocale) != null) {
-          this.domains[this.domain].activeLocale = newLocale;
+          this._domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
           this.fire('wc-i18n-locale-ready', { 'domain': this.domain, 'locale': newLocale });
           return;
@@ -195,7 +205,7 @@ See the comments on the `<wc-i18n>` element for a simple example.
       /**
        * Fetch locale file after the messages url was changed.
        */
-      _messagesUrlChanged: function(newUrl, oldUrl) {
+      _localeDirChanged: function(newUrl, oldUrl) {
         if (oldUrl) {
           this.async(function () {
             // Forced fetch of the locale file.
@@ -206,57 +216,59 @@ See the comments on the `<wc-i18n>` element for a simple example.
 
       _srcChanged: function(src) {
         if (!src) return;
-        if (!this.domains) this.domains = {};
-        if (!this.domains[this.domain]) this.domains[this.domain] = {
+        if (!this._domains) this._domains = {};
+        if (!this._domains[this.domain]) this._domains[this.domain] = {
           activeLocale: this.locale,
           locales: {},
           instances: []
         };
-        this.domains[this.domain].locales = src;
+        this._domains[this.domain].locales = src;
       },
 
       /**
        * Uses `iron-ajax` to fetch the locale file.
        */
       _fetchLocale: function(locale, force) {
-        if (this.getLocale(locale) != null && force !== true) {
-          return; // Don't fetch if the locale is already defined in the global object.
-        }
+        // Don't fetch if the locale is already defined in the global object.
+        if (this.srcLocales || (this.getLocale(locale) != null && force !== true)) return;
 
         // Initiate or get the domain object
-        var domainObj = this.domains[this.domain] || {
+        var domainObj = this._domains[this.domain] || {
           locales: {},
           instances: []
         };
 
         // Set the locale we're about to fetch. This prevents duplicate requests by other `<wc-i18n-src>` elements.
         domainObj.locales[locale] = {};
-        this.domains[this.domain] = domainObj;
+        this._domains[this.domain] = domainObj;
 
-        var domain = this.domain != 'default' ? this.domain + '_' : '';
-        var url = this.messagesUrl + '/' + domain + locale + '.json';
-        this.$.ajax.url = url;
-        var request = this.$.ajax.generateRequest();
-        request.locale = locale;
-      },
+        var url = _computeLocaleURI(this.localeDir, this.domain, locale);
 
-      /**
-       * Add the fetched locale to the `I18nCache` global and update instances.
-       */
-      _handleResponse: function(response) {
-        var locale = response.detail.locale;
-        this.domains[this.domain].locales[locale] = response.detail.response;
-        this.domains[this.domain].activeLocale = locale;
-        this._updateInstances(locale);
+        var xhr = new XMLHttpRequest();
 
-        this.fire('wc-i18n-locale-ready', { 'domain': this.domain, 'locale': locale });
+        xhr.open('GET', url);
+
+        xhr.onload = function(e) {
+          if (e.target.status !== 200) {
+            return;
+          }
+          var response = JSON.parse(e.target.response);
+          
+          this._domains[this.domain].locales[locale] = response;
+          this._domains[this.domain].activeLocale = locale;
+          this._updateInstances(locale);
+          this.fire('wc-i18n-locale-ready', { 'domain': this.domain, 'locale': locale });
+
+        }.bind(this);
+
+        xhr.send();
       },
 
       /**
        * Notify all `<wc-i18n>` instances of a particular language domain that they should update themselfs.
        */
       _updateInstances: function(locale) {
-        var instances = this.domains[this.domain].instances;
+        var instances = this._domains[this.domain].instances;
         for (var i = 0, instance; instance = instances[i]; ++i) {
           instance.update(locale);
         }
