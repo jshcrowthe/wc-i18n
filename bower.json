@@ -4,18 +4,15 @@
   "authors": [
     "Josh Crowther <jshcrowthe@gmail.com>"
   ],
-  "description": "Translation elements build with polymer.",
+  "description": "Translation elements built with polymer.",
   "keywords": [
     "web-component",
     "web-components",
     "polymer",
     "i18n",
-    "i10n",
-    "localization",
-    "internationalization",
-    "translation"
+    "internationalization"
   ],
-  "main": "i18-n-domain.html",
+  "main": "wc-i18n.html",
   "license": "MIT",
   "homepage": "https://github.com/jshcrowthe/wc-i18n/",
   "ignore": [

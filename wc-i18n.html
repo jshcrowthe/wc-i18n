@@ -1,16 +1,10 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="./wc-i18n-src.html">
-<link rel="import" href="./wc-i18n-behavior.html">
 
 <!--
 # <wc-i18n>
-This element was inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg) as well as the `<i18-n-src>` component written by [p.kaske](https://github.com/pkaske/i18-n).
 
-This solution introduces two elements that provide sourcing and consumption of internationalized strings (respectivly): `<wc-i18n-src>` and `<wc-i18n>`
-
-You need at least one `<wc-i18n-src>` in your document. It loads the locales via one of two methods: `AJAX` or manual sourcing. `AJAX` is better suited for
-development as compiling and injecting the strings into the `<wc-i18n-src>` tag on every save, though doable, can be tedious. Manual sourcing is better suited
-for production as it removes the network overhead/delay associated with fetching locale files for each component on the page.
+`<wc-i18n>` elements define a language domain/key and will only be filled with the translated string from that domain/language.
 
 This element also provides language domains (Uses the `default` domain if no other was set) to allow you to have several different sets of translations
 living on the same page.
@@ -58,7 +52,7 @@ default domain
 In `provider` mode `<wc-i18n>` will *not* display the output of the translated string.
 Instead you can use the `value` attribute to interact with the translated string (via data-binding, etc).
 
-_NOTE: The value attribute will be set regardless of whether the component is in `simple` or `provider` mode. 
+_NOTE: The value attribute will be set regardless of whether the component is in `simple` or `provider` mode.
 Provider mode simply offers you a way to use the translated string without rendering it._
 
 ```html

@@ -1,19 +1,15 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="./wc-i18n-behavior.html">
 
 <!--
 # <wc-i18n-src>
-This element was inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg) as well as the `<i18-n-src>` component written by [p.kaske](https://github.com/pkaske/i18-n).
-
-This solution introduces two elements that provide sourcing and consumption of internationalized strings (respectivly): `<wc-i18n-src>` and `<wc-i18n>`
-
-You need at least one `<wc-i18n-src>` in your document. It loads the locales via one of two methods: `AJAX` or manual sourcing. `AJAX` is better suited for
-development as compiling and injecting the strings into the `<wc-i18n-src>` tag on every save, though doable, can be tedious. Manual sourcing is better suited
-for production as it removes the network overhead/delay associated with fetching locale files for each component on the page.
 
 This element also provides language domains (Uses the `default` domain if no other was set) to allow you to have several different sets of translations
 living on the same page.
 
-`<wc-i18n>` elements define a language domain they belong to and will only be filled with translation string from that domain.
+You need at least one `<wc-i18n-src>` in your document. It loads the locales via one of two methods: `AJAX` or manual sourcing. `AJAX` is better suited for
+development as compiling and injecting the strings into the `<wc-i18n-src>` tag on every save, though doable, can be tedious. Manual sourcing is better suited
+for production as it removes the network overhead/delay associated with fetching locale files for each component on the page.
 
 The domain element provides some public methods to get translation strings.
 
@@ -30,13 +26,21 @@ Locale files of any domain other than `default` must prepend the domain name, fo
 
 ```json
 {
-  "welcome-text": "Welcome!"
+  "welcome-text": "Welcome!",
   "goodbye-text": "Goodbye!"
 }
 ```
 
 ## Example
 See the comments on the `<wc-i18n>` element for a simple example.
+
+## Behavior
+
+### `WCI18nBehavior`
+When you include `wc-i18n-src.html` you also receive the **optional** WCI18nBehavior.
+The behavior provides a utility function ( `localeDir` ) to help with web component locale loading.
+
+See the docs for more details.
 
 @element <wc-i18n-src>
 @demo demo/index.html
@@ -76,7 +80,7 @@ See the comments on the `<wc-i18n>` element for a simple example.
 
       properties: {
         /**
-         * The domain the source element serves. The URL from which 
+         * The domain the source element serves. The URL from which
          * locales are fetched is built by combining `localeDir`, `domain`,
          * and `locale` to form a URI.
          *
@@ -117,17 +121,49 @@ See the comments on the `<wc-i18n>` element for a simple example.
         },
 
         /**
-         * A map function to allow for different locale storage formats
+         * A map function for each individual locale key. This allows
+         * customization of the storage format.
+         *
+         * `<wc-i18n-src>` expects a `key` => `value` storage format of
+         * keys and translated strings. However if the storage format is
+         * different a custom `localeMap` function can be passed.
+         *
+         * This function will be run on each key in a locale and
+         * should return the translated string.
+         *
+         * _e.g._
+         *
+         * _If given a set of locales stored in the following format:_
+         *
+         * ```json
+         * {
+         *   "foo": {
+         *     "description":"A key foo in Chrome's i18n storage format",
+         *     "message":"Hello World!"
+         *   }
+         * }
+         * ```
+         *
+         * _I would provide the following `localeMap` function to get the
+         * value of `message`_:
+         *
+         * ```javascript
+         * function map(key) {
+         *   return key.message;
+         * }
+         * ```
+         *
+         * **NOTE: Though the declared type is Object, a function is expected**
          */
         localeMap: {
-          type: Function,
+          type: Object,
           value: null
         },
 
         /**
          * An object containing the source locales for the given domain. Formatted
          * as follows:
-         * 
+         *
          * ```
          * {
          *   "en": { ... },
@@ -157,7 +193,7 @@ See the comments on the `<wc-i18n>` element for a simple example.
 
       /**
        * Returns a message in the chosen locale and domain.
-       * 
+       *
        * @method getMsg
        * @param {string} key Key for translation string lookup.
        * @param {string} locale Locale to use for lookup.
@@ -181,7 +217,7 @@ See the comments on the `<wc-i18n>` element for a simple example.
 
       /**
        * Returns all available keys for a given locale.
-       * 
+       *
        * @method getLocale
        * @param {string} locale Locale to use for lookup.
        * @param {string} domain Language domain to use for lookup.
@@ -205,15 +241,15 @@ See the comments on the `<wc-i18n>` element for a simple example.
         if (this.getLocale(newLocale) != null) {
           this._domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
-          this.fire('wc-i18n-lang-ready', { 
-            'domain': this.domain, 
-            'locale': newLocale 
+          this.fire('wc-i18n-lang-ready', {
+            'domain': this.domain,
+            'locale': newLocale
           });
           return;
         }
 
         if (src) return false;
-        
+
         this.async(function() {
           this._fetchLocale(newLocale);
         });
@@ -286,7 +322,7 @@ See the comments on the `<wc-i18n>` element for a simple example.
             console.error('ERROR: wc-i18n-src was unable to parse response body for', url);
             return;
           }
-          
+
           if (typeof this.localeMap === 'function') {
             Object.keys(response).forEach(function(key) {
               response[key] = this.localeMap(response[key]);
