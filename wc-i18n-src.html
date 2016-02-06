@@ -299,7 +299,8 @@ See the docs for more details.
         // Initiate or get the domain object
         var domainObj = this._domains[this.domain] || {
           locales: {},
-          instances: []
+          instances: [],
+          loading: true
         };
 
         // Set the locale we're about to fetch. This prevents duplicate requests by other `<wc-i18n-src>` elements.
@@ -330,6 +331,7 @@ See the docs for more details.
           }
 
           this._domains[this.domain].locales[locale] = response;
+          this._domains[this.domain].loading = false;
           this._domains[this.domain].activeLocale = locale;
           this._updateInstances(locale);
           this.fire('wc-i18n-lang-ready', { 'domain': this.domain, 'locale': locale });

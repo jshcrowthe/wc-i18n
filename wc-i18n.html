@@ -146,15 +146,18 @@ Create your wc-i18n-src element here (see first example)
     },
 
     attached: function() {
-      // Register instance to the domain.
-      this._domains[this._domain].instances.push(this);
+      // Defer this callback till after all parent nodes have resolved
+      this.async(function() {
+        // Register instance to the domain.
+        this._domains[this._domain].instances.push(this);
 
-      var locale = this._domains[this._domain].activeLocale || 'en';
+        var locale = this._domains[this._domain].activeLocale || 'en';
 
-      // Update the content already here if the locale is already loaded.
-      if (this._domains[this._domain].locales[locale]) {
-        this.update(locale);
-      }
+        // Update the content already here if the locale is already loaded.
+        if (this._domains[this._domain].locales[locale] && !this._domains[this._domain].loading) {
+          this.update(locale);
+        }
+      }.bind(this));
     },
 
     detached: function() {
@@ -185,17 +188,13 @@ Create your wc-i18n-src element here (see first example)
      * Get the translation string and replace the content of the element.
      */
     update: function(locale) {
-      this.async(function() {
-        var msg = this._domains[this._domain].locales[locale][this._msgid];
-        if (msg) {
-          this._setValue(msg);
-          if (!this.provider) {
-            this.innerHTML = this.value;
-          }
-        } else {
-          console.warn(this.localName + ': "' + this._msgid + '" message id was not found');
+      var msg = this._domains[this._domain].locales[locale][this._msgid];
+      if (msg) {
+        this._setValue(msg);
+        if (!this.provider) {
+          this.innerHTML = this.value;
         }
-      }.bind(this));
+      }
     }
   });
 </script>
