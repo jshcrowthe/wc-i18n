@@ -116,8 +116,7 @@ See the docs for more details.
          */
         localeDir: {
           type: String,
-          value: 'locales',
-          observer: '_localeDirChanged'
+          value: 'locales'
         },
 
         /**
@@ -184,7 +183,7 @@ See the docs for more details.
       },
 
       observers: [
-        '_tryFetchLocale(locale, localeDir, srcLocales)',
+        '_tryFetchLocale(locale, localeDir, domain)',
         '_srcChanged(srcLocales, localeMap)'
       ],
 
@@ -234,37 +233,25 @@ See the docs for more details.
         return this._domains[domain].locales[locale];
       },
 
-      /**
-       * Only fetch if a locale and a location is set.
-       */
-      _tryFetchLocale: function(newLocale, localeDir, src) {
-        if (this.getLocale(newLocale) != null) {
-          this._domains[this.domain].activeLocale = newLocale;
-          this._updateInstances(newLocale);
-          this.fire('wc-i18n-lang-ready', {
-            'domain': this.domain,
-            'locale': newLocale
-          });
-          return;
-        }
-
-        if (src) return false;
-
+      _tryFetchLocale: function(locale, dir, domain) {
+        // Async this to allows data binding of srcLocales (if exists)
+        // to propagate.
         this.async(function() {
-          this._fetchLocale(newLocale);
-        });
-      },
+          // All three of these values are required
+          if (!locale || !dir || !domain) return;
 
-      /**
-       * Fetch locale file after the messages url was changed.
-       */
-      _localeDirChanged: function(newUrl, oldUrl) {
-        if (oldUrl) {
-          this.async(function () {
-            // Forced fetch of the locale file.
-            this._fetchLocale(this.locale, true);
-          });
-        }
+          // If the locale group OR the `srcLocales` object exist
+          // simply update the instances and move on
+          if (this.getLocale(locale, domain) || this.srcLocales) {
+            this._updateInstances(locale);
+            this.fire('wc-i18n-lang-ready', { 
+              'domain': this.domain, 
+              'locale': locale 
+            });
+          } else {
+            this._fetchLocale(locale);
+          }
+        }.bind(this));
       },
 
       _srcChanged: function() {
@@ -274,7 +261,8 @@ See the docs for more details.
         if (!this._domains[this.domain]) this._domains[this.domain] = {
           activeLocale: this.locale,
           locales: {},
-          instances: []
+          instances: [],
+          loading: false
         };
 
         // Map each locale if `localeMap` prop exists
@@ -292,10 +280,7 @@ See the docs for more details.
       /**
        * Uses `iron-ajax` to fetch the locale file.
        */
-      _fetchLocale: function(locale, force) {
-        // Don't fetch if the locale is already defined in the global object.
-        if (this.srcLocales || (this.getLocale(locale) != null && force !== true)) return;
-
+      _fetchLocale: function(locale) {
         // Initiate or get the domain object
         var domainObj = this._domains[this.domain] || {
           locales: {},
@@ -331,10 +316,13 @@ See the docs for more details.
           }
 
           this._domains[this.domain].locales[locale] = response;
-          this._domains[this.domain].loading = false;
           this._domains[this.domain].activeLocale = locale;
           this._updateInstances(locale);
-          this.fire('wc-i18n-lang-ready', { 'domain': this.domain, 'locale': locale });
+          this._domains[this.domain].loading = false;
+          this.fire('wc-i18n-lang-ready', { 
+            'domain': this.domain, 
+            'locale': locale 
+          });
 
         }.bind(this);
 
@@ -345,10 +333,10 @@ See the docs for more details.
        * Notify all `<wc-i18n>` instances of a particular language domain that they should update themselfs.
        */
       _updateInstances: function(locale) {
-        var instances = this._domains[this.domain].instances;
-        for (var i = 0, instance; instance = instances[i]; ++i) {
+        if (!this._domains || !this._domains[this.domain] || !Array.isArray(this._domains[this.domain].instances)) return;
+        this._domains[this.domain].instances.forEach(function(instance) {
           instance.update(locale);
-        }
+        });
       }
     });
   })();
