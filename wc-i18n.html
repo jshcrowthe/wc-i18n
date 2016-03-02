@@ -136,28 +136,22 @@ Create your wc-i18n-src element here (see first example)
         return;
       }
 
-      this._domains = window._WCI18n.domains;
       if (!this._domains[this._domain]) {
         this._domains[this._domain] = {
           locales: {},
           instances: []
         };
       }
-    },
 
-    attached: function() {
-      // Defer this callback till after all parent nodes have resolved
-      this.async(function() {
-        // Register instance to the domain.
-        this._domains[this._domain].instances.push(this);
+      // Register instance to the domain.
+      this._domains[this._domain].instances.push(this);
 
-        var locale = this._domains[this._domain].activeLocale || 'en';
+      var locale = this._domains[this._domain].activeLocale || 'en';
 
-        // Update the content already here if the locale is already loaded.
-        if (this._domains[this._domain].locales[locale] && !this._domains[this._domain].loading) {
-          this.update(locale);
-        }
-      }.bind(this));
+      // Update the content already here if the locale is already loaded.
+      if (this._domains[this._domain].locales[locale] && !this._domains[this._domain].loading) {
+        this.update(locale);
+      }
     },
 
     detached: function() {
