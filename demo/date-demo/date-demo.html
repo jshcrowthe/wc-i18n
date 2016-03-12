@@ -1,0 +1,49 @@
+<link rel="import" href="../../wc-i18n.html">
+<link rel="import" href="../../../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../../paper-menu/paper-menu.html">
+<link rel="import" href="../../../paper-item/paper-item.html">
+
+<dom-module id="date-demo">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <wc-i18n-src id='i18n' locale='[[lang]]' locale-dir='[[localeDir()]]' domain='date-demo' locale-strings='{{_i18n}}'></wc-i18n-src>
+    <select id="monthLang" value='{{lang::change}}'>
+      <option value="en">en</option>
+      <option value="ko">ko</option>
+    </select>
+    <paper-dropdown-menu label="Month of the year">
+      <paper-menu class="dropdown-content">
+        <template is='dom-repeat' items='[[_months]]' as='month'>
+          <paper-item>[[month]]</paper-item>
+        </template>
+      </paper-menu>
+    </paper-dropdown-menu>
+  </template>
+  <script>
+    Polymer({
+      is: 'date-demo',
+      properties: {
+        _i18n: {
+          type: Object,
+        },
+        _months: {
+          type: Array,
+          computed: '_computeMonths(_i18n)'
+        }
+      },
+      behaviors: [
+        WCI18nBehavior
+      ],
+      _computeMonths: function(obj) {
+        var localeMonths = obj;
+        return Object.keys(localeMonths).map(function(key) {
+          return localeMonths[key];
+        });
+      }
+    });
+  </script>
+</dom-module>

@@ -60,6 +60,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               test('`localeDir` defaults to `locales` if not passed', function() {
                 assert.equal(blankEl.localeDir, 'locales');
               });
+              test('`localeStrings` defaults to `null` if not available', function() {
+                assert.equal(blankEl.localeStrings, null);
+              });
               test('`srcLocales` defaults to `null` if not passed', function() {
                 assert.equal(blankEl.srcLocales, null);
               });
@@ -96,6 +99,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 assert.equal(sourcedEl.getKey('hello-msg'), 'Hello!');
                 assert.equal(sourcedEl.getKey('hello-msg', 'ko'), '안녕하세요!');
                 assert.equal(sourcedEl.getKey('hello-msg', 'fr'), 'Bonjour!');
+              });
+              test('`localeStrings` returns available strings', function() {
+                // Flush to allow for data propagation
+                flush(function() {
+                  assert.deepEqual(sourcedEl.localeStrings, {"hello-msg":"Hello!"});
+                });
               });
             });
           });
