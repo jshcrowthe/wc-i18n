@@ -179,6 +179,16 @@ See the docs for more details.
           type: Object,
           value: null,
           observer: '_srcChanged'
+        },
+
+        /**
+         * An object containing the available key value pairs for the current locale
+         * @type {Object}
+         */
+        localeStrings: {
+          type: Object,
+          value: null,
+          notify: true
         }
       },
 
@@ -337,6 +347,7 @@ See the docs for more details.
         this._domains[this.domain].instances.forEach(function(instance) {
           instance.update(locale);
         });
+        this.localeStrings = this.getLocale();
       }
     });
   })();
