@@ -11,88 +11,43 @@ Or see the LICENSE file that comes with this code.
     <title>wc-i18n demo</title>
 
     <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
-    <link rel="import" href="../wc-i18n.html">
-    <link rel="import" href="../wc-i18n-src.html">
     <link rel="import" href="./demo-comp/demo-comp.html">
-    <link rel="import" href="./date-demo/date-demo.html">
+    <link rel="import" href="./test-comp/test-comp.html">
+    <link rel="import" href="../wc-i18n.html">
   </head>
   <body>
-    <!-- Provides the 'default' domain in english -->
-    <wc-i18n-src id="i18nDomain"
-      locale-dir="locales">
-    </wc-i18n-src>
-
-    <!-- Provides the 'demo-domain' domain in german -->
-    <wc-i18n-src id="demoDomain"
-      domain="demo-domain"
-      locale="de"
-      locale-dir="locales">
-    </wc-i18n-src>
-
-    <!-- Provides the 'existing-domain' domain for all languages via a src attribute-->
-    <wc-i18n-src id="existingDomain"
-      domain="existing-domain" src-locales='{"ko":{"hi":"안녕하세요"},"de":{"hi":"Gutentag"},"en":{"hi":"Hello"}}'>
-    </wc-i18n-src>
-
     <div>
-      <label for="">Choose language for default domain</label>
-      <select id="langSelector">
+      <label for="langPicker">Choose page language: </label>
+      <select id="langPicker">
         <option selected>en</option>
         <option>es</option>
         <option>fr</option>
-      </select>
-    </div>
-
-    <div>
-      <label for="">Choose language for 'demo-domain' domain</label>
-      <select id="langSelectorDomain">
-        <option>en</option>
-        <option selected>de</option>
-      </select>
-    </div>
-
-    <div>
-      <label for="">Choose language for 'existing-domain' domain</label>
-      <select id="existingDomainSelector">
-        <option selected>en</option>
-        <option>de</option>
         <option>ko</option>
       </select>
     </div>
 
-    <p style="margin-top: 50px;">Locale domain: <strong>default</strong></p>
-    <wc-i18n key="welcome">This is some placeholder text. It's msgid is 'welcome'.</wc-i18n>
-
-    <p style="margin-top: 50px;">Locale domain: <strong>demo-domain</strong></p>
-    <wc-i18n key="demo-domain.special">The special text will appear here...</wc-i18n>
-
-    <p style="margin-top: 50px;">Locale domain: <strong>existing-domain</strong></p>
-    <wc-i18n key="existing-domain.hi">Standby text for existing src</wc-i18n>
-
-    <p style="margin-top: 50px;">Using a <strong>&lt;demo-comp&gt;</strong> component</p>
     <demo-comp></demo-comp>
+    <test-comp></test-comp>
 
-    <p style="margin-top: 50px;">Using a <strong>&lt;date-demo&gt;</strong> component</p>
-    <date-demo></date-demo>
+    <demo-comp></demo-comp>
+    <test-comp></test-comp>
+
+    <demo-comp></demo-comp>
+    <test-comp></test-comp>
+
+    <demo-comp></demo-comp>
+    <test-comp></test-comp>
+
+    <demo-comp></demo-comp>
+    <test-comp></test-comp>
+
+    <demo-comp></demo-comp>
+    <test-comp></test-comp>
 
     <script>
-      var i18nDomain = document.querySelector('#i18nDomain');
-      var demoDomain = document.querySelector('#demoDomain');
-      var existingDomain = document.querySelector('#existingDomain');
-      var langSelector = document.querySelector('#langSelector');
-      var langSelectorDemo = document.querySelector('#langSelectorDomain');
-      var existingDomainSelector = document.querySelector('#existingDomainSelector');
-
-      langSelector.addEventListener('change', function() {
-        i18nDomain.locale = this.value;
-      });
-
-      existingDomainSelector.addEventListener('change', function() {
-        existingDomain.locale = this.value;
-      });
-
-      langSelectorDemo.addEventListener('change', function() {
-        demoDomain.locale = this.value;
+      var langPicker = document.querySelector('#langPicker');
+      langPicker.addEventListener('change', function() {
+        WCI18n.setLocale(langPicker.value);
       });
     </script>
   </body>
