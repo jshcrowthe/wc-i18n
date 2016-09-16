@@ -118,6 +118,15 @@ Create your wc-i18n-src element here (see first example)
         value: null,
         readOnly: true,
         notify: true
+      },
+
+      /**
+       * In the event the language requested does not exist, or the string requested
+       * does not exist in the requested language, check for it in this language.
+       */
+      fallback: {
+        type: String,
+        value: null
       }
     },
 
@@ -182,7 +191,12 @@ Create your wc-i18n-src element here (see first example)
      * Get the translation string and replace the content of the element.
      */
     update: function(locale) {
-      var msg = this._domains[this._domain].locales[locale][this._msgid];
+      var locales = this._domains[this._domain].locales;
+      if(!locales[locale] || !locales[locale][this._msgid]) {
+        console.warn('wc-i18n: Language/Key combination not found: ' + locale + ' ' + this._msgid);
+        if(this.fallback) locale = this.fallback;
+      }
+      var msg = locales[locale][this._msgid];
       if (msg) {
         this._setValue(msg);
         if (!this.provider) {
