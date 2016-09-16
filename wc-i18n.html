@@ -1,194 +1,111 @@
-<link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="./wc-i18n-src.html">
-
-<!--
-# <wc-i18n>
-
-`<wc-i18n>` elements define a language domain/key and will only be filled with the translated string from that domain/language.
-
-This element also provides language domains (Uses the `default` domain if no other was set) to allow you to have several different sets of translations
-living on the same page.
-
-<strong>Notes:</strong>
-- The language to display isn't set on the `<wc-i18n>` elements but on the `<wc-i18n-src>`.
-- All `<wc-i18n>` elements, for each domain, are automatically updated after the locale was changed on the domain's `<wc-i18n-src>` element.
-- Each `<wc-i18n>` has two modes: `Simple` mode and `Provider` mode.
-
-## Example: Simple Mode
-
-In simple mode each `<wc-i18n>` component will display the output of a translated string.
-
-Simply pass a value to the `key` attribute that is formatted as follows `<domain>.<key>`. Optionally the `domain` can be omitted to use the
-default domain
-
-### Default Domain
-```html
-<wc-i18n-src
-  locale-dir="path/to/locales"
-  locale="de">
-</wc-i18n-src>
-
-<p>
-  <wc-i18n key="welcome-text">This will be replaced with the welcome text from the default domain.</wc-i18n>
-</p>
-
-```
-
-### Passed Domain
-```html
-<wc-i18n-src
-  locale-dir="path/to/some/other/locales"
-  domain="foobar"
-  locale="de">
-</wc-i18n-src>
-
-<p>
-  <wc-i18n key="foobar.welcome-text">This will be replaced from path/to/locales/foobar-de.json</wc-i18n>
-</p>
-```
-
-## Example: Provider Mode
-
-In `provider` mode `<wc-i18n>` will *not* display the output of the translated string.
-Instead you can use the `value` attribute to interact with the translated string (via data-binding, etc).
-
-_NOTE: The value attribute will be set regardless of whether the component is in `simple` or `provider` mode.
-Provider mode simply offers you a way to use the translated string without rendering it._
-
-```html
-Create your wc-i18n-src element here (see first example)
-
-<p>
-  The label is set by the wc-i18n.
-  <paper-input label="[[username]]"></paper-input>
-</p>
-<p>
-  This wc-i18n doesn't show the translation but you can use it's *value* attribute.
-  <wc-i18n provider key="foobar.username" value="{{username}}"></wc-i18n>
-</p>
-```
-
-@element wc-i18n
-@demo demo/index.html
-@homepage http://jshcrowthe.github.io/wc-i18n
--->
-<dom-module id="wc-i18n"></dom-module>
+<script src='./wc-i18n.js'></script>
 <script>
-  Polymer({
-    is: 'wc-i18n',
-
-    properties: {
-      /**
-       * Use `component-name.key` or just `key` to use default domain.
-       */
-      key: {
-        type: String,
-        value: null
-      },
-
-      _msgid: {
-        type: String,
-        computed: '_computeMsgid(key)'
-      },
-
-      /**
-       * Language domain the element belongs to.
-       * Only translation strings of that domain will be used.
-       */
-      _domain: {
-        type: String,
-        computed: '_computeDomain(key)'
-      },
-
-      /**
-       * If true, the element acts as a provider.
-       * Depending on `provide` and `msgid` it acts as a simple provider or list provider.
-       */
-      provider: {
-        type: Boolean,
-        value: false
-      },
-
-      /**
-       * Holds translated message or an object with all requested translations,
-       * depending on the mode the element operates in.
-       */
-      value: {
-        type: String,
-        value: null,
-        readOnly: true,
-        notify: true
-      }
-    },
-
-    // Holds reference to the global `_WCI18n.domains` object
-    get _domains() {
-      return window._WCI18n.domains;
-    },
-
-    /**
-     * Check if at least one `<wc-i18n-src>` elements exists.
-     * Register the element for the right language domain, so it's gets updated with translation strings.
-     */
-    ready: function() {
-      if (!window._WCI18n) {
-        console.warn(this.localName + ': Global _WCI18n object missing. Have you added at least one wc-i18n-domain element?');
-        return;
-      }
-
-      if (!this._domains[this._domain]) {
-        this._domains[this._domain] = {
-          locales: {},
-          instances: []
-        };
-      }
-
-      // Register instance to the domain.
-      this._domains[this._domain].instances.push(this);
-
-      var locale = this._domains[this._domain].activeLocale || 'en';
-
-      // Update the content already here if the locale is already loaded.
-      if (this._domains[this._domain].locales[locale] && !this._domains[this._domain].loading) {
-        this.update(locale);
-      }
-    },
-
-    detached: function() {
-      var instances = this._domains[this._domain].instances;
-      for (var i = 0, li = instances.length; i < li; ++i) {
-        if (instances[i] === this) {
-          instances.splice(i, 1);
-          break;
+  // Object.assign polyfill 
+  if (typeof Object.assign != 'function') {
+    (function () {
+      Object.assign = function (target) {
+        'use strict';
+        // We must check against these specific cases.
+        if (target === undefined || target === null) {
+          throw new TypeError('Cannot convert undefined or null to object');
         }
-      }
-    },
 
-    _computeMsgid: function(key) {
-      if (!key) return console.warn(this.localName + ':', 'cannot compute msgid, value of key is null');
-      if (!~key.indexOf('.')) return key;
-      key = key.split('.')
-      key.shift();
-      return key.join('.');
-    },
-
-    _computeDomain: function(key) {
-      if (!key) return console.warn(this.localName + ':', 'cannot compute domain, value of key is null');
-      if (!~key.indexOf('.')) return 'default';
-      return key.split('.')[0];
-    },
-
-    /**
-     * Get the translation string and replace the content of the element.
-     */
-    update: function(locale) {
-      var msg = this._domains[this._domain].locales[locale][this._msgid];
-      if (msg) {
-        this._setValue(msg);
-        if (!this.provider) {
-          this.innerHTML = this.value;
+        var output = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+          var source = arguments[index];
+          if (source !== undefined && source !== null) {
+            for (var nextKey in source) {
+              if (source.hasOwnProperty(nextKey)) {
+                output[nextKey] = source[nextKey];
+              }
+            }
+          }
         }
-      }
-    }
-  });
+        return output;
+      };
+    })();
+  }
+  (function(window) {
+    var _instances = {};
+    var _WCI18n = window.WCI18n;
+    var _computeLocaleURI = function(localeDir, domain, locale) {
+      return localeDir + '/' + (domain != 'default' ? domain + '_' : '') + locale + '.json';
+    };
+
+    window.WCI18n = function(namespace, locales) {
+      var _i18nInstance = _WCI18n(namespace, locales);
+      var proto = {
+        properties: {
+          _i18n: {
+            type: Object,
+            value: function() { return {}; }
+          }
+        },
+        ready: function() {
+          this.updateI18n();
+        },
+        updateI18n: function (lang) {
+          var locale = window.WCI18n.getLocale();
+          _i18nInstance.getLocales(lang)
+            .catch(function(err) {
+              return this._fetchCurrentLocaleStrings();
+            }.bind(this))
+            .then(function(i18nObj) {
+              this._i18n = i18nObj;
+            }.bind(this))
+        },
+        _fetchCurrentLocaleStrings: function() {
+          var _localePromise = this._getLocalesRaw();
+          if (_localePromise) return _localePromise;
+          
+          var locale = window.WCI18n.getLocale();
+          var url = _computeLocaleURI(this.resolveUrl('./locales'), namespace, locale);
+          var promise = fetch(url).then(function(res) {
+            return res.json();
+          })
+          // Assign promise to data location to prevent duplicate
+          // requests
+          _i18nInstance.setLocales(locale, promise);
+          return promise.then(function(locales) {
+            // Assign actual data for future requesters of these locales
+            _i18nInstance.setLocales(locale, locales);
+            return locales;
+          });
+        },
+        attached: function() {
+          if (!Array.isArray(_instances[namespace])) _instances[namespace] = [];
+          _instances[namespace].push(this);
+        },
+        detached: function() {
+          _instances[namespace] = _instances[namespace].filter(function(instance) {
+            return instance !== this;
+          }.bind(this));
+        }
+      };
+      // Merge the existing methods from the object
+      // returned from _WCI18n with the Polymer proto
+      Object.assign(_i18nInstance, proto);
+      return _i18nInstance;
+    };
+
+    // Ensure that we get the getLocale/setLocale
+    // methods from the original WCI18n method
+    Object.assign(window.WCI18n, _WCI18n);
+    window.WCI18n.setLocale = function(val) {
+      _WCI18n.setLocale(val);
+      Object.keys(_instances)
+        .map(function(namespace) {
+          return _instances[namespace];
+        })
+        .reduce(function(target, source) {
+          if (!Array.isArray(target)) target = [];
+          if (!Array.isArray(source)) source = [];
+          return target.concat(source);
+        })
+        .forEach(function(instance) {
+          instance.updateI18n();
+        });
+    };
+
+  })(window);
 </script>
