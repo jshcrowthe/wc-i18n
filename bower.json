@@ -20,13 +20,15 @@
     "/tests/"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.2.0"
+    "polymer": "Polymer/polymer#^1.2.0",
+    "fetch": "^1.0.0",
+    "promise-polyfill": "^6.0.2"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
     "web-component-tester": "Polymer/web-component-tester#master",
-    "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^1.1.3",
-    "paper-menu": "PolymerElements/paper-menu#^1.2.2",
-    "paper-item": "PolymerElements/paper-item#^1.1.4"
+  },
+  "resolutions": {
+    "promise-polyfill": "^1.0.0"
   }
 }
