@@ -1,111 +1,136 @@
-<script src='./wc-i18n.js'></script>
 <script>
-  // Object.assign polyfill 
-  if (typeof Object.assign != 'function') {
-    (function () {
-      Object.assign = function (target) {
-        'use strict';
-        // We must check against these specific cases.
-        if (target === undefined || target === null) {
-          throw new TypeError('Cannot convert undefined or null to object');
-        }
+  // (function(window) {
+    var _strings = {};
+    var _instances = [];
 
-        var output = Object(target);
-        for (var index = 1; index < arguments.length; index++) {
-          var source = arguments[index];
-          if (source !== undefined && source !== null) {
-            for (var nextKey in source) {
-              if (source.hasOwnProperty(nextKey)) {
-                output[nextKey] = source[nextKey];
-              }
-            }
-          }
-        }
-        return output;
-      };
-    })();
-  }
-  (function(window) {
-    var _instances = {};
-    var _WCI18n = window.WCI18n;
+    // Cache for functions to be defined as needed
+    var _i18nFxns = {};
+    var _errFxns = {};
     var _computeLocaleURI = function(localeDir, domain, locale) {
       return localeDir + '/' + (domain != 'default' ? domain + '_' : '') + locale + '.json';
     };
 
-    window.WCI18n = function(namespace, locales) {
-      var _i18nInstance = _WCI18n(namespace, locales);
-      var proto = {
+    /**
+     * Iterates through all components with the WCI18n behavior
+     * and updates their language (triggering a refetch of locales)
+     */
+    var _updateInstanceLanguages = function(instnaces, newLang) {
+      _instances.filter(function(el) {
+        return el.language !== newLang;
+      }).forEach(function(el) {
+        el.language = newLang;
+      });
+    };
+
+    window.WCI18n = function(locales) {
+      return {
         properties: {
-          _i18n: {
-            type: Object,
-            value: function() { return {}; }
+          /**
+           * A function to translate a string into the current
+           * language. This will be recomputed as the language
+           * changes
+           *
+           * This function can be called using the Intl
+           * @type {Object}
+           */
+          i18n: {
+            type: Function,
+          },
+          language: {
+            type: String,
+            value: 'en',
+            observer: '__updateLanguage'
+          },
+          locales: {
+            type: Object
           }
         },
-        ready: function() {
-          this.updateI18n();
-        },
-        updateI18n: function (lang) {
-          var locale = window.WCI18n.getLocale();
-          _i18nInstance.getLocales(lang)
-            .catch(function(err) {
-              return this._fetchCurrentLocaleStrings();
-            }.bind(this))
-            .then(function(i18nObj) {
-              this._i18n = i18nObj;
-            }.bind(this))
-        },
-        _fetchCurrentLocaleStrings: function() {
-          var _localePromise = this._getLocalesRaw();
-          if (_localePromise) return _localePromise;
-          
-          var locale = window.WCI18n.getLocale();
-          var url = _computeLocaleURI(this.resolveUrl('./locales'), namespace, locale);
-          var promise = fetch(url).then(function(res) {
-            return res.json();
-          })
-          // Assign promise to data location to prevent duplicate
-          // requests
-          _i18nInstance.setLocales(locale, promise);
-          return promise.then(function(locales) {
-            // Assign actual data for future requesters of these locales
-            _i18nInstance.setLocales(locale, locales);
-            return locales;
-          });
-        },
         attached: function() {
-          if (!Array.isArray(_instances[namespace])) _instances[namespace] = [];
-          _instances[namespace].push(this);
+          if (!Array.isArray(_instances[this.is])) _instances[this.is] = [];
+          _instances.push(this);
         },
         detached: function() {
-          _instances[namespace] = _instances[namespace].filter(function(instance) {
+          _instances = _instances.filter(function(instance) {
             return instance !== this;
           }.bind(this));
+        },
+        __fetchLocaleStrings: function(newLang) {
+          return new Promise(function(resolve) {
+            // If the strings already exist OR there is a promise for them
+            if (_strings[this.is] && _strings[this.is][newLang]) return resolve(_strings[this.is][newLang]);
+
+            // Compute the destination of the locales
+            var url = _computeLocaleURI(this.resolveUrl('./locales'), this.is, newLang);
+            var promise = fetch(url).then(function(res) {
+              return res.json();
+            })
+            // Assign promise to data location to prevent duplicate
+            // requests
+            if (!_strings[this.is]) _strings[this.is] = {};
+            _strings[this.is][newLang] = promise;
+
+            // Resolve with the promise and set the proper data value
+            // when the data comes back
+            return resolve(promise.then(function(locales) {
+              // Assign actual data for future requesters of these locales
+              _strings[this.is][newLang] = locales;
+              return locales;
+            }.bind(this))
+            .catch(function(err) {
+              // Unset the promise to allow refetching of the data if 
+              // possible
+              _strings[this.is][newLang] = null;
+              throw err;
+            }.bind(this)));
+          }.bind(this));
+        },
+        __updateLanguage: function(newLang, oldLang) {
+          if (!_strings[this.is]) _strings[this.is] = locales;
+
+          // Fetch the locale strings
+          this.__fetchLocaleStrings(newLang)
+          // Create a translation function for the 
+          // component
+          .then(function(locales) {
+            this.locales = locales;
+            var fxnKey = this.is + '.' + newLang;
+            this.i18n = _i18nFxns[fxnKey] = _i18nFxns[fxnKey] || function(key) {
+              // The user can pass an object as the second param or a series of sequential string values
+              var formatObject = arguments[1] && typeof arguments[1] === 'object' ? arguments[1] : null;
+              formatObject = formatObject || Array.prototype.reduce.call(arguments, function(container, value, index, array) {
+                if (!index) return container;
+                // The index is odd meaning
+                // it is in the 2,4,6 slot indicating
+                // a value whose key is the index before
+                if (!(index % 2)) {
+                  container[array[index - 1]] = value;
+                }
+                return container;
+              }, {});
+              var string = locales[key];
+
+              Object.keys(formatObject)
+                .forEach(function(key) {
+                  var placeholder = new RegExp('{' + key + '}', 'g');
+                  string = string.replace(placeholder, formatObject[key]);
+                });
+              return string || 'KEY: ' + key + ' ('+ newLang +')';
+            };
+          }.bind(this))
+          // If there is an error in fetching/parsing translations 
+          // create a function for that returns the key and use it as
+          // the translation function for this component
+          .catch(function() {
+            this.i18n = _errFxns[newLang] = _errFxns[newLang] || function(key) {
+              return 'KEY: ' + key + ' ('+ newLang +')';
+            };
+          }.bind(this));
+
+          // Iterate through all of the translatable components and trigger
+          // a language update if not already set
+          _updateInstanceLanguages(_instances, newLang);
         }
-      };
-      // Merge the existing methods from the object
-      // returned from _WCI18n with the Polymer proto
-      Object.assign(_i18nInstance, proto);
-      return _i18nInstance;
+      }
     };
-
-    // Ensure that we get the getLocale/setLocale
-    // methods from the original WCI18n method
-    Object.assign(window.WCI18n, _WCI18n);
-    window.WCI18n.setLocale = function(val) {
-      _WCI18n.setLocale(val);
-      Object.keys(_instances)
-        .map(function(namespace) {
-          return _instances[namespace];
-        })
-        .reduce(function(target, source) {
-          if (!Array.isArray(target)) target = [];
-          if (!Array.isArray(source)) source = [];
-          return target.concat(source);
-        })
-        .forEach(function(instance) {
-          instance.updateI18n();
-        });
-    };
-
-  })(window);
+  // })(window);
 </script>

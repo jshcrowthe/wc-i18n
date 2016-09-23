@@ -8,13 +8,13 @@
         display: block;
       }
     </style>
-    <h1>[[_i18n.foo]]</h1>
+    <h1>[[i18n('bar')]]</h1>
   </template>
   <script>
     Polymer({
       is: 'demo-comp',
       behaviors: [
-        WCI18n('demo-comp')
+        WCI18n()
       ],
     });
   </script>
