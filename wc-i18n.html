@@ -1,5 +1,5 @@
 <script>
-  // (function(window) {
+  (function(window) {
     var _strings = {};
     var _instances = [];
 
@@ -35,15 +35,15 @@
            */
           i18n: {
             type: Function,
+            value: function() {
+              return function() {};
+            }
           },
           language: {
             type: String,
             value: 'en',
             observer: '__updateLanguage'
           },
-          locales: {
-            type: Object
-          }
         },
         attached: function() {
           if (!Array.isArray(_instances[this.is])) _instances[this.is] = [];
@@ -61,7 +61,7 @@
 
             // Compute the destination of the locales
             var url = _computeLocaleURI(this.resolveUrl('./locales'), this.is, newLang);
-            var promise = fetch(url).then(function(res) {
+            var promise = window.fetch(url).then(function(res) {
               return res.json();
             })
             // Assign promise to data location to prevent duplicate
@@ -92,7 +92,6 @@
           // Create a translation function for the 
           // component
           .then(function(locales) {
-            this.locales = locales;
             var fxnKey = this.is + '.' + newLang;
             this.i18n = _i18nFxns[fxnKey] = _i18nFxns[fxnKey] || function(key) {
               // The user can pass an object as the second param or a series of sequential string values
@@ -132,5 +131,5 @@
         }
       }
     };
-  // })(window);
+  })(window);
 </script>

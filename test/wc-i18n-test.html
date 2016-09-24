@@ -1,0 +1,195 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../promise-polyfill/promise.min.js"></script>
+    <script src="../../fetch/fetch.js"></script>
+    
+    <script>
+      // This is a nasty global test hack. Super bad but it works
+      var srcLocales = {
+        "en":{
+          "hello-msg":"Hello!",
+          "fancy-msg":"This is a {type} {thing}"
+        },
+        "ko":{
+          "hello-msg":"안녕하세요!"
+        },
+        "fr":{
+          "hello-msg":"Bonjour!"
+        },
+        "de":{
+          "hello-msg":"Gutentag!"
+        }
+      };
+    </script>
+    <!-- Step 1: import the element to test -->
+    <link rel="import" href="./x-el.html">
+    <link rel="import" href="./x-el-inline.html">
+  </head>
+  <body>
+
+    <!-- You can use the document as a place to set up your fixtures. -->
+    <test-fixture id="x-el">
+      <template>
+        <x-el></x-el>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="x-el-inline">
+      <template>
+        <x-el-inline></x-el-inline>
+      </template>
+    </test-fixture>
+
+    <script>
+      sinon.stub(window, 'fetch');
+      (function() {
+        function jsonOk (body) {
+          return new Promise(function(resolve) {
+            var mockResponse = new window.Response(JSON.stringify(body), {
+              status: 200,
+              headers: {
+                'Content-type': 'application/json'
+              }
+            });
+            setTimeout(function() {
+              resolve(mockResponse);
+            }, 0);
+          });
+        }
+
+        function jsonError (status, body) {
+          return new Promise(function(_, reject) {
+            var mockResponse = new window.Response(JSON.stringify(body), {
+              status: 200,
+              headers: {
+                'Content-type': 'application/json'
+              }
+            });
+            setTimeout(function() {
+              reject(mockResponse);
+            }, 0);
+          });
+        }
+        describe((~location.search.indexOf('dom=shadow') ? 'Shadow DOM Tests' : 'Light DOM Tests'), function() {
+          var xEl, xElInline, server;
+
+          beforeEach(function() {
+            xElInline = fixture('x-el-inline');
+          });
+
+          /**
+           * Blank Elememnt Tests
+           */
+          describe('WCI18n', function() {
+            describe('by default', function() {
+              it('should have an i18n function', function() {
+                expect(xElInline.i18n).to.be.a('function');
+              });
+              it('should have a language property that defaults to `en`', function() {
+                expect(xElInline.language).to.equal('en');
+              });
+            });
+            describe('if strings inlined', function() {
+              beforeEach(function() {
+                xElInline = fixture('x-el-inline');
+              });
+              describe('When initialized', function() {
+                it('should have a translation function that returns strings', function(done) {
+                  flush(function() {
+                    var key = 'hello-msg';
+                    expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+                    done();
+                  });
+                });
+                it('should update translation function when language changes', function(done) {
+                  var key = 'hello-msg';
+                  var newLang = 'fr';
+                  flush(function() {
+                    var enI18n = xElInline.i18n;
+                    xElInline.language = newLang;
+                    expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+                    flush(function() {
+                      expect(enI18n).to.not.equal(xElInline.i18n);
+                      expect(xElInline.i18n(key)).to.equal(srcLocales[newLang][key]);
+                      done();
+                    });
+                  });
+                });
+              });
+            });
+            describe('if not inlined', function() {
+              var i18nFxn;
+              beforeEach(function() {
+                window.fetch.returns(jsonOk(srcLocales.en));
+                xEl = fixture('x-el');
+                i18nFxn = xEl.i18n;
+              });
+
+              describe('when initialized', function() {
+                it('should attempt to fetch locales', function() {
+                  expect(fetch.calledOnce).to.be.true;
+                });
+                it('should update translation function with strings when returned', function(done) {
+                  var key = 'hello-msg';
+                  setTimeout(function() {
+                    expect(i18nFxn !== xEl.i18n).to.be.true;
+                    expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+                    done();
+                  }, 25);
+                });
+              });
+            });
+            describe('translation function', function() {
+              it('should interpolate from a placeholder object', function(done) {
+                var key = 'fancy-msg';
+                flush(function() {
+                  expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+                  expect(xElInline.i18n(key, {
+                    type: 'fancy'
+                  })).to.equal('This is a fancy {thing}');
+                  expect(xElInline.i18n(key, {
+                    type: 'fancy',
+                    thing: 'car'
+                  })).to.equal('This is a fancy car');
+                  done();
+                });
+              });
+              it('should interpolate from a key value argument sequence', function(done) {
+                var key = 'fancy-msg';
+                flush(function() {
+                  expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+                  expect(xElInline.i18n(key, 'type', 'fancy')).to.equal('This is a fancy {thing}');
+                  expect(xElInline.i18n(key, 'type', 'fancy', 'thing', 'car')).to.equal('This is a fancy car');
+                  done();
+                });
+              });
+              it('should fall back to the key on missing strings', function(done) {
+                var key = 'missing-key';
+                flush(function() {
+                  expect(xElInline.i18n(key)).to.equal('KEY: ' + key + ' (en)');
+                  done();
+                });
+              });
+            })
+          });
+        });
+      })();
+    </script>
+
+  </body>
+</html>
