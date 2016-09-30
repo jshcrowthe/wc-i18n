@@ -182,7 +182,12 @@ Create your wc-i18n-src element here (see first example)
      * Get the translation string and replace the content of the element.
      */
     update: function(locale) {
-      var msg = this._domains[this._domain].locales[locale][this._msgid];
+      var locales = this._domains[this._domain].locales;
+      if(!locales[locale] || !locales[locale][this._msgid]) {
+        return this.fire('wc-i18n:locale-not-found', {locale: locale, key, this._msgid});
+        console.warn('wc-i18n: Language/Key combination not found: ' + locale + ' ' + this._msgid);
+      }
+      var msg = locales[locale][this._msgid];
       if (msg) {
         this._setValue(msg);
         if (!this.provider) {
