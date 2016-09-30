@@ -184,8 +184,8 @@ Create your wc-i18n-src element here (see first example)
     update: function(locale) {
       var locales = this._domains[this._domain].locales;
       if(!locales[locale] || !locales[locale][this._msgid]) {
-        return this.fire('wc-i18n:locale-not-found', {locale: locale, key, this._msgid});
         console.warn('wc-i18n: Language/Key combination not found: ' + locale + ' ' + this._msgid);
+        return this.fire('wc-i18n:locale-not-found', {locale: locale, key, this._msgid});
       }
       var msg = locales[locale][this._msgid];
       if (msg) {
