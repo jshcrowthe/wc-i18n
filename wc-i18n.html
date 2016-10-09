@@ -132,10 +132,17 @@
           /**
            * A function to translate a string into the current
            * language. This will be recomputed as the language
-           * changes
+           * changes 
            *
-           * This function can be called using the Intl
-           * @type {Object}
+           * **Syntax**:
+           * 
+           * i18n('key', [interpolation args])
+           *
+           * **Parameters**:
+           * - **key**: The locale key to interpolate
+           * - **interpolation args**: [OPTIONAL] key -> value args to interpolate in a string
+           *
+           * @type {Function}
            */
           i18n: {
             type: Function,
@@ -143,6 +150,13 @@
               return function() {};
             }
           },
+
+          /**
+           * The language of the components in the application. 
+           *
+           * **NOTE: This should only be set once for the entire application**
+           * @type {Object}
+           */
           language: {
             type: String,
             value: 'en',
