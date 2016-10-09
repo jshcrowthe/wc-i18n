@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
-    "web-component-tester": "Polymer/web-component-tester#master"
+    "web-component-tester": "Polymer/web-component-tester#4.3.4"
   },
   "resolutions": {
     "promise-polyfill": "^1.0.0"
