@@ -6,8 +6,17 @@
     // Cache for functions to be defined as needed
     var _i18nFxns = {};
     var _errFxns = {};
-    var _computeLocaleURI = function(localeDir, domain, locale) {
-      return localeDir + '/' + (domain != 'default' ? domain + '_' : '') + locale + '.json';
+
+    /**
+     * Utility function to compute the default location for locales
+     * 
+     * @param  {String} localeDir The directory of the locales
+     * @param  {String} component The name of the component to be translated
+     * @param  {String} lang      The language of the locale to be fetched 
+     * @return {String}           The formatted path to the locales
+     */
+    var _computeLocaleURI = function(localeDir, component, lang) {
+      return localeDir + '/' + component + '_' + lang + '.json';
     };
 
     /**
@@ -172,6 +181,16 @@
             return instance !== this;
           }.bind(this));
         },
+
+        /**
+         * Fetches the locales from the file server, only used if a locales object
+         * for the current language doesn't exist.
+         * 
+         * @param  {String} newLang The language that should be fetched
+         * @return {Promise}         A promise to get the data, it resolves
+         * instantaneously if the data has been fetched before or if a pending
+         * request for data exists
+         */
         __fetchLocaleStrings: function(newLang) {
           return new Promise(function(resolve) {
             // If the strings already exist OR there is a promise for them
@@ -181,7 +200,7 @@
             var url = _computeLocaleURI(this.resolveUrl('./locales'), this.is, newLang);
             var promise = window.fetch(url).then(function(res) {
               return res.json();
-            })
+            });
             // Assign promise to data location to prevent duplicate
             // requests
             if (!_strings[this.is]) _strings[this.is] = {};
@@ -202,6 +221,13 @@
             }.bind(this)));
           }.bind(this));
         },
+        /**
+         * Triggered by a change in the value of the `language` prop. 
+         * This refreshes the value of the `i18n` function.
+         * 
+         * @param  {String} newLang The new language
+         * @param  {String} oldLang The old language 
+         */
         __updateLanguage: function(newLang, oldLang) {
           if (!_strings[this.is]) _strings[this.is] = locales;
 
