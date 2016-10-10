@@ -5,6 +5,16 @@
 
 `WCI18n` is a lightweight `i18n` solution for web components, in API it is quite similar to [`Polymer.AppLocalizeBehavior`](https://github.com/PolymerElements/app-localize-behavior) but it is approaching the problem from a different angle.
 
+`WCI18n` assumes native support for the following two APIs:
+
+- `Promise`
+- `fetch`
+
+If you don't have access to these two APIs in your target browser you will need to load them. Some quality polyfills can be found below:
+
+- `Promise` - https://github.com/taylorhakes/promise-polyfill
+- `fetch` - https://github.com/github/fetch
+
 There are a couple of distinct design differences between `WCI18n` and [`Polymer.AppLocalizeBehavior`](https://github.com/PolymerElements/app-localize-behavior)
 
 Specifically:
