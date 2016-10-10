@@ -1,0 +1,10 @@
+{
+  "name": "client-browserified",
+  "_cacheHeaders": {
+    "Content-Type": "application/javascript"
+  },
+  "main": "index.js",
+  "_source": "https://unpkg.com/fetch-mock@5.5.0/es5/client-browserified.js",
+  "_target": "*",
+  "_originalSource": "https://unpkg.com/fetch-mock@5.5.0/es5/client-browserified.js"
+}

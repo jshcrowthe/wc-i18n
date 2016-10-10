@@ -1,0 +1,32 @@
+{
+  "name": "wc-i18n",
+  "version": "2.0.1",
+  "authors": [
+    "Josh Crowther <jshcrowthe@gmail.com>"
+  ],
+  "description": "Translation elements built with polymer.",
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "i18n",
+    "internationalization"
+  ],
+  "main": "wc-i18n.html",
+  "license": "MIT",
+  "homepage": "https://github.com/jshcrowthe/wc-i18n/",
+  "ignore": [
+    "/.*",
+    "/tests/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.0",
+    "fetch": "^1.0.0",
+    "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0",
+    "fetch-mock": "https://unpkg.com/fetch-mock@5.5.0/es5/client-browserified.js"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "Polymer/web-component-tester#4.3.4"
+  }
+}

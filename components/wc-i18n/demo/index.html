@@ -1,0 +1,63 @@
+<!--
+@license
+Copyright (c) 2015 Josh Crowther <jshcrowthe@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>wc-i18n demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+    <script src="../../promise-polyfill/promise.min.js"></script>
+    <script src="../../fetch/fetch.js"></script>
+    <link rel="import" href="./demo-comp/demo-comp.html">
+    <link rel="import" href="./test-comp/test-comp.html">
+    <link rel="import" href="./fancy-el/fancy-el.html">
+    <link rel="import" href="../wc-i18n.html">
+  </head>
+  <body>
+    <div>
+      <label for="langPicker">Choose page language: </label>
+      <select id="langPicker">
+        <option selected>en</option>
+        <option>es</option>
+        <option>fr</option>
+        <option>ko</option>
+      </select>
+    </div>
+
+    <test-comp></test-comp>
+    <demo-comp></demo-comp>
+    <fancy-el></fancy-el>
+
+    <test-comp></test-comp>
+    <demo-comp></demo-comp>
+    <fancy-el></fancy-el>
+
+    <test-comp></test-comp>
+    <demo-comp></demo-comp>
+    <fancy-el></fancy-el>
+
+    <test-comp></test-comp>
+    <demo-comp></demo-comp>
+    <fancy-el></fancy-el>
+
+    <test-comp></test-comp>
+    <demo-comp></demo-comp>
+    <fancy-el></fancy-el>
+
+    <test-comp></test-comp>
+    <demo-comp></demo-comp>
+    <fancy-el></fancy-el>
+
+    <script>
+      var langPicker = document.querySelector('#langPicker');
+      langPicker.addEventListener('change', function() {
+        document.querySelector('demo-comp').language = langPicker.value;
+      });
+    </script>
+  </body>
+</html>

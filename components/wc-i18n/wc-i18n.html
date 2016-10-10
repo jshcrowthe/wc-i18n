@@ -1,0 +1,301 @@
+<script>
+  (function(window) {
+    var _strings = {};
+    var _instances = [];
+
+    // Cache for functions to be defined as needed
+    var _i18nFxns = {};
+    var _errFxns = {};
+
+    /**
+     * Utility function to compute the default location for locales
+     * 
+     * @param  {String} localeDir The directory of the locales
+     * @param  {String} component The name of the component to be translated
+     * @param  {String} lang      The language of the locale to be fetched 
+     * @return {String}           The formatted path to the locales
+     */
+    var _computeLocaleURI = function(localeDir, component, lang) {
+      return localeDir + '/' + component + '_' + lang + '.json';
+    };
+
+    /**
+     * Iterates through all components with the WCI18n behavior
+     * and updates their language (triggering a refetch of locales)
+     */
+    var _updateInstanceLanguages = function(instnaces, newLang) {
+      _instances.filter(function(el) {
+        return el.language !== newLang;
+      }).forEach(function(el) {
+        el.language = newLang;
+      });
+    };
+
+    /*
+     * # WCI18n [![Build Status](https://travis-ci.org/jshcrowthe/wc-i18n.svg?branch=master)](https://travis-ci.org/jshcrowthe/wc-i18n)
+     * 
+     * `WCI18n` is a lightweight `i18n` solution for web components, in API it is 
+     * quite similar to [`Polymer.AppLocalizeBehavior`](https://github.com/PolymerElements/app-localize-behavior) but it is approaching the problem from a different angle.
+     *
+     * `WCI18n` assumes native support for the following two APIs:
+     *
+     *  - `Promise`
+     *  - `fetch`
+     *
+     * If you don't have access to these two APIs in your target browser you will need to load them. Some quality polyfills can be found below:
+     *
+     *  - `Promise` - https://github.com/taylorhakes/promise-polyfill
+     *  - `fetch` - https://github.com/github/fetch
+     * 
+     * There are a couple of distinct design differences between `WCI18n` and [`Polymer.AppLocalizeBehavior`](https://github.com/PolymerElements/app-localize-behavior)
+     * Specifically:
+     * - There is only 1 language allowed across the **entire** application
+     * - Each registered custom element defines (and fetches) its own locales, there is no support for a single locale file
+     * - Each component will fetch **only** the locales it needs for the current language (meaning that for production, inlining a formatted locale object is advisable)
+     *
+     * ## Example Usage
+     *
+     * ### Basic Usage
+     * 
+     * `WCI18n` is included and used in your component as follows:
+     * 
+     * ```html
+     * <dom-module id='custom-el'>
+     *   <template>
+     *     <!-- Use the provided `i18n` function -->
+     *     <p>i18n('key')</p>
+     *   </template>
+     *   <script>
+     *     Polymer({
+     *       is: 'custom-el',
+     *       behaviors: [
+     *         WCI18n() // <-- Include the behavior
+     *       ]
+     *     });
+     *   &lt;/script>
+     * </dom-module>
+     * ```
+     *
+     * You can inject a translation object by passing a formatted locales object to the `WCI18n` function.
+     *
+     * _Formatted Object_
+     * ```
+     * {
+     *   "en": {
+     *     "key": "value"
+     *   },
+     *   "fr": {
+     *     "key": "valeur"
+     *   }
+     * }
+     * ```
+     *
+     * _Example Injection_
+     * ```html
+     * <dom-module id='custom-el'>
+     *   <template>
+     *     <!-- Use the provided `i18n` function -->
+     *     <p>i18n('key')</p>
+     *   </template>
+     *   <script>
+     *     Polymer({
+     *       is: 'custom-el',
+     *       behaviors: [
+     *         WCI18n({ en: { key: "value"}, fr: { key: "valeur" }}) // <-- Injected translations
+     *       ]
+     *     });
+     *   &lt;/script>
+     * </dom-module>
+     * ```
+     *
+     * ### String Interpolation
+     *
+     * Currently this component **does not** use the native `Intl` object and the `IntlMessageFormat` standards for legacy browser support. However
+     * basic string interpolation is supported via 2 means:
+     *
+     * - `key` -> `val` sequential string params
+     * - String format object
+     *
+     * **For example**, if you take the following format string:
+     *
+     * ```
+     * I love to take my {noun} to the {place}
+     * ```
+     *
+     * You could do interpolation either of the following ways:
+     * 
+     * ```
+     * i18n('key', 'noun', 'cat', 'place', 'groomer');
+     * ```
+     *
+     * ```
+     * i18n('key', { "noun": "cat", "place": "groomer" })
+     * ```
+     *
+     * Both will create the following string:
+     * 
+     * ```
+     * I love to take my cat to the groomer
+     * ```
+     *
+     * ## Bugs/Comments
+     * 
+     * Please feel free to leave a [github issue](https://github.com/jshcrowthe/wc-i18n/issues) if there is a bug or feedback on how to improve this solution
+     * 
+     * @demo demo/index.html
+     * @polymerBehavior WCI18n
+     */
+    window.WCI18n = function(locales) {
+      return {
+        properties: {
+          /**
+           * A function to translate a string into the current
+           * language. This will be recomputed as the language
+           * changes 
+           *
+           * **Syntax**:
+           * 
+           * `i18n('key', [interpolation args])`
+           *
+           * **Parameters**:
+           * - **key**: The locale key to interpolate
+           * - **interpolation args**: [OPTIONAL] key -> value args to interpolate in a string
+           *
+           * @type {Function}
+           */
+          i18n: {
+            type: Function,
+            value: function() {
+              return function() {};
+            }
+          },
+
+          /**
+           * The language of the components in the application. 
+           *
+           * **NOTE: This should only be set once for the entire application**
+           * @type {Object}
+           */
+          language: {
+            type: String,
+            value: 'en',
+            observer: '__updateLanguage'
+          },
+        },
+        attached: function() {
+          if (!Array.isArray(_instances[this.is])) _instances[this.is] = [];
+          _instances.push(this);
+        },
+        detached: function() {
+          _instances = _instances.filter(function(instance) {
+            return instance !== this;
+          }.bind(this));
+        },
+
+        /**
+         * Fetches the locales from the file server, only used if a locales object
+         * for the current language doesn't exist.
+         * 
+         * @param  {String} newLang The language that should be fetched
+         * @return {Promise}         A promise to get the data, it resolves
+         * instantaneously if the data has been fetched before or if a pending
+         * request for data exists
+         */
+        __fetchLocaleStrings: function(newLang) {
+          return new Promise(function(resolve) {
+            // If the strings already exist OR there is a promise for them
+            if (_strings[this.is] && _strings[this.is][newLang]) return resolve(_strings[this.is][newLang]);
+
+            // Compute the destination of the locales
+            var url = _computeLocaleURI(this.resolveUrl('./locales'), this.is, newLang);
+            var promise = window.fetch(url).then(function(res) {
+              return res.json();
+            });
+            // Assign promise to data location to prevent duplicate
+            // requests
+            if (!_strings[this.is]) _strings[this.is] = {};
+            _strings[this.is][newLang] = promise;
+
+            // Resolve with the promise and set the proper data value
+            // when the data comes back
+            return resolve(promise.then(function(locales) {
+              // Assign actual data for future requesters of these locales
+              _strings[this.is][newLang] = locales;
+              return locales;
+            }.bind(this))
+            .catch(function(err) {
+              // Unset the promise to allow refetching of the data if 
+              // possible
+              _strings[this.is][newLang] = null;
+              throw err;
+            }.bind(this)));
+          }.bind(this));
+        },
+        /**
+         * Triggered by a change in the value of the `language` prop. 
+         * This refreshes the value of the `i18n` function.
+         * 
+         * @param  {String} newLang The new language
+         * @param  {String} oldLang The old language 
+         */
+        __updateLanguage: function(newLang, oldLang) {
+          if (!_strings[this.is]) _strings[this.is] = locales;
+
+          // Fetch the locale strings then
+          // Create a translation function for the 
+          // component
+          this.__fetchLocaleStrings(newLang)
+          .then(function(locales) {
+            var fxnKey = this.is + '.' + newLang;
+            this.i18n = _i18nFxns[fxnKey] = _i18nFxns[fxnKey] || function(key) {
+              // The user can pass an object as the second param or a series of sequential string values
+              var formatObject = arguments[1] && typeof arguments[1] === 'object' ? arguments[1] : null;
+              formatObject = formatObject || Array.prototype.reduce.call(arguments, function(container, value, index, array) {
+                if (!index) return container;
+                // The index is odd meaning
+                // it is in the 2,4,6 slot indicating
+                // a value whose key is the index before
+                if (!(index % 2)) {
+                  container[array[index - 1]] = value;
+                }
+                return container;
+              }, {});
+              var string = locales[key];
+
+              Object.keys(formatObject)
+                .forEach(function(key) {
+                  var placeholder = new RegExp('{' + key + '}', 'g');
+                  string = string.replace(placeholder, formatObject[key]);
+                });
+              return string || 'KEY: ' + key + ' ('+ newLang +')';
+            };
+            /**
+             * Fired when the component locales have succesfully loaded.
+             *
+             * @event wc-i18n-translations-loaded
+             */
+            this.fire('wc-i18n-translations-loaded');
+          }.bind(this))
+          // If there is an error in fetching/parsing translations 
+          // create a function for that returns the key and use it as
+          // the translation function for this component
+          .catch(function() {
+            this.i18n = _errFxns[newLang] = _errFxns[newLang] || function(key) {
+              return 'KEY: ' + key + ' ('+ newLang +')';
+            };
+            /**
+             * Fired when the component locales have failed to load.
+             *
+             * @event wc-i18n-translations-error
+             */
+            this.fire('wc-i18n-translations-error');
+          }.bind(this));
+
+          // Iterate through all of the translatable components and trigger
+          // a language update if not already set
+          _updateInstanceLanguages(_instances, newLang);
+        }
+      }
+    };
+  })(window);
+</script>
