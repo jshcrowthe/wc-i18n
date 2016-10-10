@@ -269,6 +269,11 @@
                 });
               return string || 'KEY: ' + key + ' ('+ newLang +')';
             };
+            /**
+             * Fired when the component locales have succesfully loaded.
+             *
+             * @event wc-i18n-translations-loaded
+             */
             this.fire('wc-i18n-translations-loaded');
           }.bind(this))
           // If there is an error in fetching/parsing translations 
@@ -278,6 +283,11 @@
             this.i18n = _errFxns[newLang] = _errFxns[newLang] || function(key) {
               return 'KEY: ' + key + ' ('+ newLang +')';
             };
+            /**
+             * Fired when the component locales have failed to load.
+             *
+             * @event wc-i18n-translations-error
+             */
             this.fire('wc-i18n-translations-error');
           }.bind(this));
 
