@@ -259,6 +259,7 @@
                 });
               return string || 'KEY: ' + key + ' ('+ newLang +')';
             };
+            this.fire('wc-i18n-translations-loaded');
           }.bind(this))
           // If there is an error in fetching/parsing translations 
           // create a function for that returns the key and use it as
@@ -267,6 +268,7 @@
             this.i18n = _errFxns[newLang] = _errFxns[newLang] || function(key) {
               return 'KEY: ' + key + ' ('+ newLang +')';
             };
+            this.fire('wc-i18n-translations-error');
           }.bind(this));
 
           // Iterate through all of the translatable components and trigger
