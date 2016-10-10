@@ -22,7 +22,8 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.2.0",
     "fetch": "^1.0.0",
-    "promise-polyfill": "^6.0.2"
+    "promise-polyfill": "^6.0.2",
+    "fetch-mock": "https://unpkg.com/fetch-mock@5.5.0/es5/client-browserified.js"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

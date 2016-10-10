@@ -17,6 +17,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="../../web-component-tester/browser.js"></script>
     <script src="../../promise-polyfill/promise.min.js"></script>
     <script src="../../fetch/fetch.js"></script>
+    <script src="../../fetch-mock/index.js"></script>
     
     <script>
       // This is a nasty global test hack. Super bad but it works
@@ -56,35 +57,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-      sinon.stub(window, 'fetch');
       (function() {
-        function jsonOk (body) {
-          return new Promise(function(resolve) {
-            var mockResponse = new window.Response(JSON.stringify(body), {
-              status: 200,
-              headers: {
-                'Content-type': 'application/json'
-              }
-            });
-            setTimeout(function() {
-              resolve(mockResponse);
-            }, 0);
-          });
-        }
-
-        function jsonError (status, body) {
-          return new Promise(function(_, reject) {
-            var mockResponse = new window.Response(JSON.stringify(body), {
-              status: 200,
-              headers: {
-                'Content-type': 'application/json'
-              }
-            });
-            setTimeout(function() {
-              reject(mockResponse);
-            }, 0);
-          });
-        }
         describe((~location.search.indexOf('dom=shadow') ? 'Shadow DOM Tests' : 'Light DOM Tests'), function() {
           var xEl, xElInline, server;
 
@@ -133,24 +106,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               });
             });
             describe('if not inlined', function() {
+              var matcher = /\/components\/wc-i18n\/test\/locales\/x-el_en\.json/;
+              before(function() {
+                fetchMock.get(matcher, srcLocales['en']);
+              });
+
+              after(function() {
+                fetchMock.restore();
+              });
+
               var i18nFxn;
               beforeEach(function() {
-                window.fetch.returns(jsonOk(srcLocales.en));
                 xEl = fixture('x-el');
                 i18nFxn = xEl.i18n;
               });
 
               describe('when initialized', function() {
                 it('should attempt to fetch locales', function() {
-                  expect(fetch.calledOnce).to.be.true;
+                  expect(fetchMock.called(matcher)).to.be.true;
                 });
                 it('should update translation function with strings when returned', function(done) {
                   var key = 'hello-msg';
-                  setTimeout(function() {
+                  var handler = function() {
                     expect(i18nFxn !== xEl.i18n).to.be.true;
-                    expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+                    expect(xEl.i18n(key)).to.equal(srcLocales['en'][key]);
                     done();
-                  }, 200);
+                    xEl.removeEventListener('wc-i18n-translations-loaded', handler);
+                  };
+                  xEl.addEventListener('wc-i18n-translations-loaded', handler);
                 });
               });
             });
