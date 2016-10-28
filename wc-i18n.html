@@ -1,5 +1,6 @@
 <script>
   (function(window) {
+    var _language = 'en';
     var _strings = {};
     var _instances = [];
 
@@ -23,13 +24,28 @@
      * Iterates through all components with the WCI18n behavior
      * and updates their language (triggering a refetch of locales)
      */
-    var _updateInstanceLanguages = function(instnaces, newLang) {
-      _instances.filter(function(el) {
+    var _updateInstanceLanguages = function(instances, newLang) {
+      instances.filter(function(el) {
+        // Filter out those instances that already are using the
+        // proper language
         return el.language !== newLang;
       }).forEach(function(el) {
         el.language = newLang;
+        el.__skipGlobalLanguageUpdate = true;
       });
     };
+
+    /**
+     * Allow users to pre-set a language that will be used as the
+     * default by doing the following:
+     *
+     * ```
+     * window.WCI18n = { language: 'ko' };
+     * ```
+     */
+    if (window.WCI18n) {
+      _language = window.WCI18n.language || _language;
+    }
 
     /*
      * # WCI18n [![Build Status](https://travis-ci.org/jshcrowthe/wc-i18n.svg?branch=master)](https://travis-ci.org/jshcrowthe/wc-i18n)
@@ -178,9 +194,10 @@
            */
           language: {
             type: String,
-            value: 'en',
+            value: _language,
             observer: '__updateLanguage'
           },
+          
         },
         attached: function() {
           if (!Array.isArray(_instances[this.is])) _instances[this.is] = [];
@@ -239,6 +256,7 @@
          * @param  {String} oldLang The old language 
          */
         __updateLanguage: function(newLang, oldLang) {
+          if (_language !== newLang) _language = newLang;
           if (!_strings[this.is]) _strings[this.is] = locales;
 
           // Fetch the locale strings then
@@ -293,9 +311,18 @@
 
           // Iterate through all of the translatable components and trigger
           // a language update if not already set
-          _updateInstanceLanguages(_instances, newLang);
+          if (this.__skipGlobalLanguageUpdate) {
+            this.__skipGlobalLanguageUpdate = false;
+          } else {
+            _updateInstanceLanguages(_instances, newLang);
+          }
         }
-      }
+      };
+    };
+
+    window.WCI18n.setLanguage = function(lang) {
+      _language = lang;
+      _updateInstanceLanguages(_instances, lang);
     };
   })(window);
 </script>
