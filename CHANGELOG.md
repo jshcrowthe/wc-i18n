@@ -1,5 +1,13 @@
 Changelog
----------------------
+--------------------
+## 2.1.0
+- Add global language configuration helpers
+
+## 2.0.1
+- Fixed minor dependency version resolution error
+
+## 2.0.0
+- Major API refactor (full documentation [here](https://github.com/jshcrowthe/wc-i18n/pull/6))
 
 ## 1.1.0
 - Add `localeStrings` exported prop on wc-i18n-src
