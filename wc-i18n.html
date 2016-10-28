@@ -154,6 +154,50 @@
      * I love to take my cat to the groomer
      * ```
      *
+     * ## Global Config
+     *
+     * ### Language
+     * 
+     * In addition to the typical component setup `wc-i18n` provides some addition functions that you can use to configure the language of your application
+     *
+     * #### Global Preset
+     *
+     * By pre-defining the `window.WCI18n` object you can create a new default language for your application. 
+     * This can be an easy way to set consistent global languages across multiple pages
+     *
+     * _Example:_
+     *
+     * ```html
+     * <!DOCTYPE html>
+     * <html>
+     * <head>
+     *   <title>Define WCI18n</title>
+     *  
+     *   <script>
+     *     // By predefining this object the language 
+     *     // will default to 'ko' not 'en'
+     *     window.WCI18n = { language: 'ko' };
+     *    &lt;/script>
+     *
+     *   <!-- Web Components -->
+     *   <link rel='import' href="my/component/bundle.html">
+     *  </head>
+     *  <body>
+     *    ...
+     *  </body>
+     *  </html>
+     * ```
+     *
+     * #### Global Setter
+     *
+     * The `WCI18n` object now also exposes a `setLanguage` function that can be called to set the language to a given locale.
+     *
+     * _Example:_
+     *
+     * ```javascript
+     * window.WCI18n.setLanguage('ko'); //- Sets language to 'ko'
+     * ```
+     *
      * ## Bugs/Comments
      * 
      * Please feel free to leave a [github issue](https://github.com/jshcrowthe/wc-i18n/issues) if there is a bug or feedback on how to improve this solution
