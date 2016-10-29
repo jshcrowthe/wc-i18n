@@ -18,25 +18,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="../../promise-polyfill/promise-polyfill-lite.html">
     <script src="../../fetch/fetch.js"></script>
     <script src="../../fetch-mock/index.js"></script>
+    <script src='srcLocales.js'></script>
     
-    <script>
-      // This is a nasty global test hack. Super bad but it works
-      var srcLocales = {
-        "en":{
-          "hello-msg":"Hello!",
-          "fancy-msg":"This is a {type} {thing}"
-        },
-        "ko":{
-          "hello-msg":"안녕하세요!"
-        },
-        "fr":{
-          "hello-msg":"Bonjour!"
-        },
-        "de":{
-          "hello-msg":"Gutentag!"
-        }
-      };
-    </script>
     <!-- Step 1: import the element to test -->
     <script>
       window.WCI18n = { language: 'ko' };

@@ -1,0 +1,78 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <link rel="import" href="../../promise-polyfill/promise-polyfill-lite.html">
+    <script src="../../fetch/fetch.js"></script>
+    <script src="../../fetch-mock/index.js"></script>
+    <script src='srcLocales.js'></script>
+    
+    <!-- Step 1: import the element to test -->
+    <link rel="import" href="./x-native.html">
+    <link rel="import" href="./x-native-inline.html">
+  </head>
+  <body>
+    <test-fixture id='x-native'>
+      <template>
+        <x-native></x-native>
+      </template>
+    </test-fixture>
+    <test-fixture id='x-native-inline'>
+      <template>
+        <x-native-inline></x-native-inline>
+      </template>
+    </test-fixture>
+    <script>
+      (function() {
+        describe('WCI18n Function', function() {
+          describe('If passed locales succesfully', function() {
+            var el;
+            beforeEach(function() {
+              el = fixture('x-native-inline');
+            });
+            it('should properly create locale fxn', function(done) {
+              flush(function() {
+                expect(el.i18n('hello-msg')).to.equal(srcLocales.en['hello-msg']);
+                done();
+              });
+            });
+          });
+          describe('If not passed locales', function() {
+            var matcher = /\/components\/wc-i18n\/test\/locales\/x-native_en\.json/;
+            before(function() {
+              fetchMock.get(matcher, srcLocales['en']);
+            });
+
+            after(function() {
+              fetchMock.restore();
+            });
+
+            var el;
+            beforeEach(function() {
+              el = fixture('x-native');
+            });
+            it('should try and fetch locales', function() {
+            });
+          });
+          describe('If locales fail', function() {
+            it('should create an error function');
+          });
+        });
+      })();
+    </script>
+
+  </body>
+</html>

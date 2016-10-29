@@ -1,0 +1,125 @@
+<script>
+  (function() {
+    // Default Language (Customizable)
+    var _language = window.WCI18n && typeof window.WCI18n.language === 'string' ? window.WCI18n.language : 'en';
+
+    // Cache for functions to be defined as needed
+    var _i18nFxns = {};
+    var _errFxns = {};
+
+    // Cache for strings
+    var _strings = {};
+
+    /**
+     * Utility function to compute the default location for locales
+     * 
+     * @param  {String} localeDir The directory of the locales
+     * @param  {String} component The name of the component to be translated
+     * @param  {String} lang      The language of the locale to be fetched 
+     * @return {String}           The formatted path to the locales
+     */
+    var _computeLocaleURI = function(localeDir, component, lang) {
+      return localeDir + '/' + component + '_' + lang + '.json';
+    };
+
+    var resolveUrl = function(baseUrl, relativeUrl) {
+      return new URL(relativeUrl, baseUrl).href;
+    };
+
+    /**
+     * Fetches the locales from the file server, only used if a locales object
+     * for the current language doesn't exist.
+     * 
+     * @param  {String} newLang The language that should be fetched
+     * @return {Promise}         A promise to get the data, it resolves
+     * instantaneously if the data has been fetched before or if a pending
+     * request for data exists
+     */
+    var getStrings = function(locales, componentName, language, base) {
+      base = base || document.baseURI;
+      language = language || _language;
+      return new Promise(function(resolve, reject) {
+        // If the componentName isn't set fail
+        if (!componentName) return reject(new Error('componentName property is undefined'));
+
+        // If the locales are passed assign them to the proper location
+        if (locales) _strings[componentName] = locales;
+
+        // If the strings already exist OR there is a promise for them
+        if (_strings[componentName] && _strings[componentName][_language]) return resolve(_strings[componentName][_language]);
+
+        // Compute the destination of the locales
+        var url = _computeLocaleURI(resolveUrl(base, './locales'), componentName, _language);
+        var promise = window.fetch(url).then(function(res) {
+          return res.json();
+        });
+        // Assign promise to data location to prevent duplicate
+        // requests
+        if (!_strings[componentName]) _strings[componentName] = {};
+        _strings[componentName][_language] = promise;
+
+        // Resolve with the promise and set the proper data value
+        // when the data comes back
+        return resolve(promise.then(function(locales) {
+          // Assign actual data for future requesters of these locales
+          _strings[componentName][_language] = locales;
+          return locales;
+        })
+        .catch(function(err) {
+          // Unset the promise to allow refetching of the data if 
+          // possible
+          _strings[componentName][_language] = null;
+          throw err;
+        }));
+      });
+    };
+
+    var buildI18nFxn = function(componentName, language, locales) {
+      var fxnKey = componentName + '.' + language;
+      return (_i18nFxns[fxnKey] = _i18nFxns[fxnKey] || function(key) {
+        // The user can pass an object as the second param or a series of sequential string values
+        var formatObject = arguments[1] && typeof arguments[1] === 'object' ? arguments[1] : null;
+        formatObject = formatObject || Array.prototype.reduce.call(arguments, function(container, value, index, array) {
+          if (!index) return container;
+          // The index is odd meaning
+          // it is in the 2,4,6 slot indicating
+          // a value whose key is the index before
+          if (!(index % 2)) {
+            container[array[index - 1]] = value;
+          }
+          return container;
+        }, {});
+        var string = locales[key];
+
+        Object.keys(formatObject)
+          .forEach(function(key) {
+            var placeholder = new RegExp('{' + key + '}', 'g');
+            string = string.replace(placeholder, formatObject[key]);
+          });
+        return string || 'KEY: ' + key + ' ('+ language +')';
+      });
+    };
+
+    var buildErrorFxn = function(componentName, language) {
+      return _errFxns[language] = _errFxns[language] || function(key) {
+        return 'KEY: ' + key + ' ('+ language +')';
+      };
+    };
+
+    window.WCI18n = function(locales, componentName, language, base) {
+      return getStrings(locales, componentName, language, base)
+        .then(function(i18nStrings) {
+          return buildI18nFxn(componentName, language, i18nStrings);
+        })
+        .catch(function() {
+          throw buildErrorFxn(componentName, language);
+        });
+    };
+
+    Object.defineProperty(window.WCI18n, 'language', {
+      get: function() { return _language; },
+      set: function(val) { return _language = val; },
+      enumerable: true
+    });
+  })();
+</script>

@@ -1,0 +1,19 @@
+<link rel="import" href="../wc-i18n-native.html">
+
+<script>
+  (function() {
+    var componentName = 'x-native-inline';
+    
+    var proto = Object.create(HTMLElement.prototype);
+    proto.i18n = function() {};
+    proto.createdCallback = function() {
+      WCI18n(srcLocales, componentName).then(function(_i18n) {
+        proto.i18n = _i18n;
+      });
+    };
+
+    document.registerElement(componentName, {
+      prototype: proto
+    });
+  })();
+</script>
