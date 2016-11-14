@@ -8,12 +8,7 @@ addons:
     - google-chrome
     packages:
     - google-chrome-stable
-before_script:
-  - npm install web-component-tester
-  - npm install bower
-  - export PATH=$PWD/node_modules/.bin:$PATH
-  - bower install
 script:
-  - xvfb-run wct
+  - xvfb-run npm test
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct -s 'default'; fi
 dist: trusty
