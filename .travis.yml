@@ -1,6 +1,7 @@
 language: node_js
 sudo: required
 node_js: stable
+install: npm install -g yarn && yarn
 addons:
   firefox: latest
   apt:
