@@ -1,0 +1,29 @@
+{
+  "name": "wc-i18n",
+  "version": "2.1.0",
+  "authors": [
+    "Josh Crowther <jshcrowthe@gmail.com>"
+  ],
+  "scripts": {
+    "test": "bower install && wct"
+  },
+  "description": "A translation solution for web components",
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "i18n",
+    "internationalization"
+  ],
+  "main": "wc-i18n.html",
+  "license": "MIT",
+  "homepage": "https://github.com/jshcrowthe/wc-i18n/",
+  "ignore": [
+    "/.*",
+    "/tests/"
+  ],
+  "dependencies": {
+    "bower": "^1.8.0",
+    "web-component-tester": "^5.0.0"
+  }
+}

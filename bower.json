@@ -20,10 +20,10 @@
     "/tests/"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.2.0",
     "fetch": "^1.0.0",
-    "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0",
-    "fetch-mock": "https://unpkg.com/fetch-mock@5.5.0/es5/client-browserified.js"
+    "fetch-mock": "https://unpkg.com/fetch-mock@5.5.0/es5/client-browserified.js",
+    "polymer": "Polymer/polymer#^1.2.0",
+    "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
