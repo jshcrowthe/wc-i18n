@@ -55,6 +55,21 @@ See the docs for more details.
     };
 
     /**
+     * Gets the preferred language from the browser.
+     */
+    var getNavigatorLanguage = function() {
+      var navLang = navigator.language;
+
+      /* navigator.languages[0] is better, if it exists, because navigator.language is set
+       * to the OS language in Chrome. */
+      if (navigator.languages && navigator.languages.length > 0) {
+        navLang = navigator.languages[0];
+      }
+
+      return navLang;
+    };
+
+    /**
      * The global cache for all locales loaded.
      */
     window._WCI18n = window._WCI18n || {
@@ -103,7 +118,7 @@ See the docs for more details.
         locale: {
           type: String,
           value: function() {
-            var lang = window.navigator.languages[0];
+            var lang = getNavigatorLanguage();
             if (lang) {
               return lang.match(/(\w{2})/)[1];
             }
