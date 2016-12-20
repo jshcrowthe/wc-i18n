@@ -103,7 +103,7 @@ See the docs for more details.
         locale: {
           type: String,
           value: function() {
-            var lang = window.navigator.language;
+            var lang = window.navigator.languages[0];
             if (lang) {
               return lang.match(/(\w{2})/)[1];
             }
