@@ -28,6 +28,28 @@ Specifically:
 
 `WCI18n` is included and used in your component as follows:
 
+#### Polymer 2
+
+```html
+<dom-module id='custom-el'>
+  <template>
+    <!-- Use the provided `i18n` function -->
+    <p>i18n('key')</p>
+  </template>
+  <script>
+    class CustomEl extends Polymer.mixinBehaviors([WCI18n()], Polymer.Element) {
+      static get is() {
+        return 'custom-el';
+      }
+      /* ... */
+    }
+    customElements.define(CustomEl.is, CustomEl);
+  </script>
+</dom-module>
+```
+
+#### Polymer 1
+
 ```html
 <dom-module id='custom-el'>
   <template>
