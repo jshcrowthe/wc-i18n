@@ -244,13 +244,17 @@
           
         },
         attached: function() {
-          if (!Array.isArray(_instances[this.is])) _instances[this.is] = [];
+          if (!Array.isArray(_instances[this.__getComponentName()])) _instances[this.__getComponentName()] = [];
           _instances.push(this);
         },
         detached: function() {
           _instances = _instances.filter(function(instance) {
             return instance !== this;
           }.bind(this));
+        },
+
+        __getComponentName: function() {
+          return (typeof this.is === 'string') ? this.is : this.tagName.toLowerCase();
         },
 
         /**
@@ -265,29 +269,29 @@
         __fetchLocaleStrings: function(newLang) {
           return new Promise(function(resolve) {
             // If the strings already exist OR there is a promise for them
-            if (_strings[this.is] && _strings[this.is][newLang]) return resolve(_strings[this.is][newLang]);
+            if (_strings[this.__getComponentName()] && _strings[this.__getComponentName()][newLang]) return resolve(_strings[this.__getComponentName()][newLang]);
 
             // Compute the destination of the locales
-            var url = _computeLocaleURI(this.resolveUrl('./locales'), this.is, newLang);
+            var url = _computeLocaleURI(this.resolveUrl('./locales'), this.__getComponentName(), newLang);
             var promise = window.fetch(url).then(function(res) {
               return res.json();
             });
             // Assign promise to data location to prevent duplicate
             // requests
-            if (!_strings[this.is]) _strings[this.is] = {};
-            _strings[this.is][newLang] = promise;
+            if (!_strings[this.__getComponentName()]) _strings[this.__getComponentName()] = {};
+            _strings[this.__getComponentName()][newLang] = promise;
 
             // Resolve with the promise and set the proper data value
             // when the data comes back
             return resolve(promise.then(function(locales) {
               // Assign actual data for future requesters of these locales
-              _strings[this.is][newLang] = locales;
+              _strings[this.__getComponentName()][newLang] = locales;
               return locales;
             }.bind(this))
             .catch(function(err) {
               // Unset the promise to allow refetching of the data if 
               // possible
-              _strings[this.is][newLang] = null;
+              _strings[this.__getComponentName()][newLang] = null;
               throw err;
             }.bind(this)));
           }.bind(this));
@@ -301,14 +305,14 @@
          */
         __updateLanguage: function(newLang, oldLang) {
           if (_language !== newLang) _language = newLang;
-          if (!_strings[this.is]) _strings[this.is] = locales;
+          if (!_strings[this.__getComponentName()]) _strings[this.__getComponentName()] = locales;
 
           // Fetch the locale strings then
           // Create a translation function for the 
           // component
           this.__fetchLocaleStrings(newLang)
           .then(function(locales) {
-            var fxnKey = this.is + '.' + newLang;
+            var fxnKey = this.__getComponentName() + '.' + newLang;
             this.i18n = _i18nFxns[fxnKey] = _i18nFxns[fxnKey] || function(key) {
               // The user can pass an object as the second param or a series of sequential string values
               var formatObject = arguments[1] && typeof arguments[1] === 'object' ? arguments[1] : null;
