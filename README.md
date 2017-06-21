@@ -34,7 +34,7 @@ Specifically:
 <dom-module id='custom-el'>
   <template>
     <!-- Use the provided `i18n` function -->
-    <p>i18n('key')</p>
+    <p>[[i18n('key')]]</p>
   </template>
   <script>
     class CustomEl extends Polymer.mixinBehaviors([WCI18n()], Polymer.Element) {
