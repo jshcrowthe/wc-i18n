@@ -18,7 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="../../promise-polyfill/promise-polyfill-lite.html">
     <script src="../../fetch/fetch.js"></script>
     <script src="../../fetch-mock/index.js"></script>
-    
+
     <script>
       // This is a nasty global test hack. Super bad but it works
       var srcLocales = {
@@ -44,13 +44,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <body>
 
     <!-- You can use the document as a place to set up your fixtures. -->
-    <test-fixture id="x-el">
+    <test-fixture id="x-el-fixture">
       <template>
         <x-el></x-el>
       </template>
     </test-fixture>
 
-    <test-fixture id="x-el-inline">
+    <test-fixture id="x-el-inline-fixture">
       <template>
         <x-el-inline></x-el-inline>
       </template>
@@ -62,7 +62,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var xEl, xElInline, server;
 
           beforeEach(function() {
-            xElInline = fixture('x-el-inline');
+            xElInline = fixture('x-el-inline-fixture');
           });
 
           /**
@@ -79,7 +79,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             });
             describe('if strings inlined', function() {
               beforeEach(function() {
-                xElInline = fixture('x-el-inline');
+                xElInline = fixture('x-el-inline-fixture');
               });
               describe('When initialized', function() {
                 it('should have a translation function that returns strings', function(done) {
@@ -117,7 +117,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
               var i18nFxn;
               beforeEach(function() {
-                xEl = fixture('x-el');
+                xEl = fixture('x-el-fixture');
                 i18nFxn = xEl.i18n;
               });
 

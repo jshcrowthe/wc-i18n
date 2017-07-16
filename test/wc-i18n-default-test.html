@@ -18,7 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="../../promise-polyfill/promise-polyfill-lite.html">
     <script src="../../fetch/fetch.js"></script>
     <script src="../../fetch-mock/index.js"></script>
-    
+
     <script>
       // This is a nasty global test hack. Super bad but it works
       var srcLocales = {
@@ -46,7 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <body>
 
     <!-- You can use the document as a place to set up your fixtures. -->
-    <test-fixture id="x-el">
+    <test-fixture id="x-el-fixture">
       <template>
         <x-el-inline></x-el-inline>
       </template>
@@ -57,7 +57,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         describe('WCI18n Global Default', function() {
           var xEl;
           beforeEach(function() {
-            xEl = fixture('x-el');
+            xEl = fixture('x-el-fixture');
           });
           it('Should set the default language to the value of WCI18n.language (if set)', function(done) {
             flush(function() {
