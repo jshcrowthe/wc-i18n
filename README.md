@@ -173,6 +173,14 @@ _Example:_
 window.WCI18n.setLanguage('ko'); //- Sets language to 'ko'
 ```
 
+## Running Docs Locally
+
+1. (Once) Install/Update the [Polymer CLI](https://www.npmjs.com/package/polymer-cli): ```npm i -g polymer-cli```
+
+1. Run `bower i` to load all of the dependencies.
+1. Run `polymer analyze > analysis.json` to set up docs page.
+1. Run `polymer serve -o` to run and view docs page including demo.
+
 ## Bugs/Comments
 
 Please feel free to leave a [github issue](https://github.com/jshcrowthe/wc-i18n/issues) if there is a bug or feedback on how to improve this solution
