@@ -254,7 +254,7 @@
         },
 
         __getComponentName: function() {
-          return (typeof this.is === 'string') ? this.is : this.tagName.toLowerCase();
+          return (typeof this.is === 'string' && this.is !== '') ? this.is : this.tagName.toLowerCase();
         },
 
         /**
