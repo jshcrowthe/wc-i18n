@@ -1,5 +1,9 @@
 Changelog
 --------------------
+## 2.2.0
+- Polymer 2 support
+- Fixes issue with navigator.language
+
 ## 2.1.0
 - Add global language configuration helpers
 
