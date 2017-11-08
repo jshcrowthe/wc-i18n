@@ -71,7 +71,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           describe('WCI18n', function() {
             describe('by default', function() {
               it('should have an i18n function', function() {
-                expect(xElInline.i18n).to.be.a('function');
+                expect(xElInline.i18n).to.be.an('undefined');
+                flush(function() {
+                  expect(xElInline.i18n).to.be.a('function');
+                });
               });
               it('should have a language property that defaults to `en`', function() {
                 expect(xElInline.language).to.equal('en');
