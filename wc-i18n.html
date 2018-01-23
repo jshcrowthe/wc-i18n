@@ -344,12 +344,13 @@
                 return container;
               }, {});
               var string = locales[key];
-
-              Object.keys(formatObject)
-                .forEach(function(key) {
-                  var placeholder = new RegExp('{' + key + '}', 'g');
-                  string = string.replace(placeholder, formatObject[key]);
-                });
+              if(string) {
+                Object.keys(formatObject)
+                  .forEach(function(key) {
+                    var placeholder = new RegExp('{' + key + '}', 'g');
+                    string = string.replace(placeholder, formatObject[key]);
+                  });
+              }
               return string || 'KEY: ' + key + ' ('+ newLang +')';
             };
             /**
@@ -362,9 +363,10 @@
           // If there is an error in fetching/parsing translations 
           // create a function for that returns the key and use it as
           // the translation function for this component
-          .catch(function() {
+          .catch(function(error) {
+            console.log(error);
             this.i18n = _errFxns[newLang] = _errFxns[newLang] || function(key) {
-              return 'KEY: ' + key + ' ('+ newLang +')';
+              return 'ERROR: ' + key + ' ('+ newLang +')';
             };
             /**
              * Fired when the component locales have failed to load.
