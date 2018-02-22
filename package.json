@@ -24,6 +24,6 @@
   ],
   "dependencies": {
     "bower": "^1.8.0",
-    "web-component-tester": "^5.0.0"
+    "web-component-tester": "^6.0.0"
   }
 }
