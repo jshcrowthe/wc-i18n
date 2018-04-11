@@ -347,7 +347,7 @@
               if(string) {
                 Object.keys(formatObject)
                   .forEach(function(key) {
-                    var placeholder = new RegExp('{' + key + '}', 'g');
+                    var placeholder = new RegExp('{\\b' + key + '}', 'g');
                     string = string.replace(placeholder, formatObject[key]);
                   });
               }
