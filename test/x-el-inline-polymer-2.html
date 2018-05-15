@@ -1,0 +1,34 @@
+<link rel="import" href="../../polymer/polymer-element.html">
+<link rel="import" href="../wc-i18n-mixin.html">
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="x-el-inline-polymer-2">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    
+  </template>
+  <script>
+    class XElInlinePolymer2 extends WCI18nMixin(Polymer.Element, srcLocales) {
+      static get is() {return 'x-el-inline'};
+    }
+    customElements.define('x-el-inline-polymer-2', XElInlinePolymer2);
+  </script>
+</dom-module>

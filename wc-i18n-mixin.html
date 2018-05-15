@@ -1,5 +1,6 @@
+<link rel="import" href="../polymer/lib/utils/resolve-url.html">
 <script>
-  (function(window) {
+  (function (window) {
     var _language = 'en';
     var _strings = {};
     var _instances = [];
@@ -10,13 +11,13 @@
 
     /**
      * Utility function to compute the default location for locales
-     * 
+     *
      * @param  {String} localeDir The directory of the locales
      * @param  {String} component The name of the component to be translated
-     * @param  {String} lang      The language of the locale to be fetched 
+     * @param  {String} lang      The language of the locale to be fetched
      * @return {String}           The formatted path to the locales
      */
-    var _computeLocaleURI = function(localeDir, component, lang) {
+    var _computeLocaleURI = function (localeDir, component, lang) {
       return localeDir + '/' + component + '_' + lang + '.json';
     };
 
@@ -24,12 +25,12 @@
      * Iterates through all components with the WCI18n behavior
      * and updates their language (triggering a refetch of locales)
      */
-    var _updateInstanceLanguages = function(instances, newLang) {
-      instances.filter(function(el) {
+    var _updateInstanceLanguages = function (instances, newLang) {
+      instances.filter(function (el) {
         // Filter out those instances that already are using the
         // proper language
         return el.language !== newLang;
-      }).forEach(function(el) {
+      }).forEach(function (el) {
         el.language = newLang;
         el.__skipGlobalLanguageUpdate = true;
       });
@@ -44,7 +45,6 @@
      * ```
      */
     if (window.WCI18n) {
-      debugger
       _language = window.WCI18n.language || _language;
     }
 
@@ -221,18 +221,34 @@
      * Please feel free to leave a [github issue](https://github.com/jshcrowthe/wc-i18n/issues) if there is a bug or feedback on how to improve this solution
      * 
      * @demo demo/index.html
-     * @polymerBehavior WCI18n
+     * This mixin lets you travel faster than light speed, almost.
+     * @polymer
+     * @mixinFunction
      */
-    window.WCI18n = function(locales) {
-      return {
-        properties: {
+    window.WCI18nMixin = (superclass, locales) => class extends superclass {
+      constructor(locales) {
+        super();
+        this.addEventListener('keypress', e => this.handlePress(e));
+      }
+
+      get language() {
+        return _language;
+      }
+
+      set language(newLang) {
+        _language = newLang;
+        this.__updateLanguage(newLang);
+      }
+
+      static get properties() {
+        return {
           /**
            * A function to translate a string into the current
            * language. This will be recomputed as the language
-           * changes 
+           * changes
            *
            * **Syntax**:
-           * 
+           *
            * `i18n('key', [interpolation args])`
            *
            * **Parameters**:
@@ -243,13 +259,13 @@
            */
           i18n: {
             type: Function,
-            value: function() {
+            value: function () {
               return undefined;
             }
           },
 
           /**
-           * The language of the components in the application. 
+           * The language of the components in the application.
            *
            * **NOTE: This should only be set once for the entire application**
            * @type {Object}
@@ -259,82 +275,93 @@
             value: _language,
             observer: '__updateLanguage'
           },
-          
-        },
-        attached: function() {
-          if (!Array.isArray(_instances[this.__getComponentName()])) _instances[this.__getComponentName()] = [];
-          _instances.push(this);
-        },
-        detached: function() {
-          _instances = _instances.filter(function(instance) {
-            return instance !== this;
-          }.bind(this));
-        },
 
-        __getComponentName: function() {
-          return (typeof this.is === 'string' && this.is !== '') ? this.is : this.tagName.toLowerCase();
-        },
+        }
+      }
 
-        /**
-         * Fetches the locales from the file server, only used if a locales object
-         * for the current language doesn't exist.
-         * 
-         * @param  {String} newLang The language that should be fetched
-         * @return {Promise}         A promise to get the data, it resolves
-         * instantaneously if the data has been fetched before or if a pending
-         * request for data exists
-         */
-        __fetchLocaleStrings: function(newLang) {
-          return new Promise(function(resolve) {
-            // If the strings already exist OR there is a promise for them
-            if (_strings[this.__getComponentName()] && _strings[this.__getComponentName()][newLang]) return resolve(_strings[this.__getComponentName()][newLang]);
+      connectedCallback() {
+        if (super.connectedCallback) {
+          super.connectedCallback();
+        }
+        if (!Array.isArray(_instances[this.__getComponentName()])) _instances[this.__getComponentName()] = [];
+        _instances.push(this);
+        this.__updateLanguage(_language);
+      }
 
-            // Compute the destination of the locales
-            var url = _computeLocaleURI(this.resolveUrl('./locales'), this.__getComponentName(), newLang);
-            var promise = window.fetch(url).then(function(res) {
-              return res.json();
-            });
-            // Assign promise to data location to prevent duplicate
-            // requests
-            if (!_strings[this.__getComponentName()]) _strings[this.__getComponentName()] = {};
-            _strings[this.__getComponentName()][newLang] = promise;
+      disconnectedCallback() {
+        if (super.disconnectedCallback) {
+          super.disconnectedCallback();
+        }
+        _instances = _instances.filter(function (instance) {
+          return instance !== this;
+        }.bind(this));
+      }
 
-            // Resolve with the promise and set the proper data value
-            // when the data comes back
-            return resolve(promise.then(function(locales) {
+      __getComponentName() {
+        return (typeof this.is === 'string' && this.is !== '') ? this.is : this.tagName.toLowerCase();
+      }
+
+      /**
+       * Fetches the locales from the file server, only used if a locales object
+       * for the current language doesn't exist.
+       *
+       * @param  {String} newLang The language that should be fetched
+       * @return {Promise}         A promise to get the data, it resolves
+       * instantaneously if the data has been fetched before or if a pending
+       * request for data exists
+       */
+      __fetchLocaleStrings(newLang) {
+        return new Promise(function (resolve) {
+          // If the strings already exist OR there is a promise for them
+          if (_strings[this.__getComponentName()] && _strings[this.__getComponentName()][newLang]) return resolve(_strings[this.__getComponentName()][newLang]);
+
+          // Compute the destination of the locales
+          var url = _computeLocaleURI(Polymer.ResolveUrl.resolveUrl('./locales'), this.__getComponentName(), newLang);
+          var promise = window.fetch(url).then(function (res) {
+            return res.json();
+          });
+          // Assign promise to data location to prevent duplicate
+          // requests
+          if (!_strings[this.__getComponentName()]) _strings[this.__getComponentName()] = {};
+          _strings[this.__getComponentName()][newLang] = promise;
+
+          // Resolve with the promise and set the proper data value
+          // when the data comes back
+          return resolve(promise.then(function (locales) {
               // Assign actual data for future requesters of these locales
               _strings[this.__getComponentName()][newLang] = locales;
               return locales;
             }.bind(this))
-            .catch(function(err) {
+            .catch(function (err) {
               // Unset the promise to allow refetching of the data if 
               // possible
               _strings[this.__getComponentName()][newLang] = null;
               throw err;
             }.bind(this)));
-          }.bind(this));
-        },
-        /**
-         * Triggered by a change in the value of the `language` prop. 
-         * This refreshes the value of the `i18n` function.
-         * 
-         * @param  {String} newLang The new language
-         * @param  {String} oldLang The old language 
-         */
-        __updateLanguage: function(newLang, oldLang) {
-          if (_language !== newLang) _language = newLang;
-          if (!_strings[this.__getComponentName()]) _strings[this.__getComponentName()] = locales;
+        }.bind(this));
+      }
 
-          // Fetch the locale strings then
-          // Create a translation function for the 
-          // component
-          this.__fetchLocaleStrings(newLang)
-          .then(function(locales) {
+      /**
+       * Triggered by a change in the value of the `language` prop.
+       * This refreshes the value of the `i18n` function.
+       *
+       * @param  {String} newLang The new language
+       * @param  {String} oldLang The old language
+       */
+      __updateLanguage(newLang, oldLang) {
+        if (_language !== newLang) _language = newLang;
+        if (!_strings[this.__getComponentName()]) _strings[this.__getComponentName()] = locales;
+
+        // Fetch the locale strings then
+        // Create a translation function for the
+        // component
+        this.__fetchLocaleStrings(newLang)
+          .then(function (locales) {
             var fxnKey = this.__getComponentName() + '.' + newLang;
-            this.i18n = _i18nFxns[fxnKey] = _i18nFxns[fxnKey] || function(key) {
+            this.i18n = _i18nFxns[fxnKey] = _i18nFxns[fxnKey] || function (key) {
               // The user can pass an object as the second param or a series of sequential string values
               var formatObject = arguments[1] && typeof arguments[1] === 'object' ? arguments[1] : null;
-              formatObject = formatObject || Array.prototype.reduce.call(arguments, function(container, value, index, array) {
+              formatObject = formatObject || Array.prototype.reduce.call(arguments, function (container, value, index, array) {
                 if (!index) return container;
                 // The index is odd meaning
                 // it is in the 2,4,6 slot indicating
@@ -345,51 +372,50 @@
                 return container;
               }, {});
               var string = locales[key];
-              if(string) {
+              if (string) {
                 Object.keys(formatObject)
-                  .forEach(function(key) {
+                  .forEach(function (key) {
                     var placeholder = new RegExp('{' + key + '}', 'g');
                     string = string.replace(placeholder, formatObject[key]);
                   });
               }
-              return string || 'KEY: ' + key + ' ('+ newLang +')';
+              return string || 'KEY: ' + key + ' (' + newLang + ')';
             };
             /**
              * Fired when the component locales have succesfully loaded.
              *
              * @event wc-i18n-translations-loaded
              */
-            this.fire('wc-i18n-translations-loaded');
+            this.dispatchEvent(new CustomEvent('wc-i18n-translations-loaded', { bubbles: true, composed: true }));
           }.bind(this))
           // If there is an error in fetching/parsing translations 
           // create a function for that returns the key and use it as
           // the translation function for this component
-          .catch(function(error) {
+          .catch(function (error) {
             console.log(error);
-            this.i18n = _errFxns[newLang] = _errFxns[newLang] || function(key) {
-              return 'ERROR: ' + key + ' ('+ newLang +')';
+            this.i18n = _errFxns[newLang] = _errFxns[newLang] || function (key) {
+              return 'ERROR: ' + key + ' (' + newLang + ')';
             };
             /**
              * Fired when the component locales have failed to load.
              *
              * @event wc-i18n-translations-error
              */
-            this.fire('wc-i18n-translations-error');
+            this.dispatchEvent(new CustomEvent('wc-i18n-translations-error', { bubbles: true, composed: true }));
           }.bind(this));
 
-          // Iterate through all of the translatable components and trigger
-          // a language update if not already set
-          if (this.__skipGlobalLanguageUpdate) {
-            this.__skipGlobalLanguageUpdate = false;
-          } else {
-            _updateInstanceLanguages(_instances, newLang);
-          }
+        // Iterate through all of the translatable components and trigger
+        // a language update if not already set
+        if (this.__skipGlobalLanguageUpdate) {
+          this.__skipGlobalLanguageUpdate = false;
+        } else {
+          _updateInstanceLanguages(_instances, newLang);
         }
-      };
+      }
     };
 
-    window.WCI18n.setLanguage = function(lang) {
-      _language = lang;
+    window.WCI18n.setLanguage = function (lang) {
+      window.WCI18nMixin.language = lang;
       _updateInstanceLanguages(_instances, lang);
     };
   })(window);

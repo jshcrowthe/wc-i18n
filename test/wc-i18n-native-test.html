@@ -15,7 +15,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
-    <link rel="import" href="../../promise-polyfill/promise-polyfill-lite.html">
     <script src="../../fetch/fetch.js"></script>
     <script src="../../fetch-mock/index.js"></script>
 
@@ -41,38 +40,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script>
       window.WCI18n = { language: 'ko' };
     </script>
-    <link rel="import" href="./x-el-inline.html">
-    <link rel="import" href="./x-el-inline-polymer-2.html">
+    <link rel="import" href="x-el-native.html">
+    <!--<script src="x-el-native.js"></script>-->
   </head>
   <body>
 
     <!-- You can use the document as a place to set up your fixtures. -->
     <test-fixture id="x-el-fixture">
       <template>
-        <x-el-inline></x-el-inline>
-      </template>
-    </test-fixture>
-
-    <test-fixture id="x-el-fixture-polymer-2">
-      <template>
-        <x-el-inline-polymer-2></x-el-inline-polymer-2>
+        <x-el-native></x-el-native>
       </template>
     </test-fixture>
 
     <script>
       (function() {
         describe('WCI18n Global Default', function() {
-          var xEl, xEl2;
+          var xEl;
+          var ko_matcher = /\/components\/wc-i18n\/test\/locales\/x-el-native_ko\.json/;
+          var en_matcher = /\/components\/wc-i18n\/test\/locales\/x-el-native_en\.json/;
+          before(function() {
+            fetchMock.get(ko_matcher, srcLocales['ko']);
+            fetchMock.get(en_matcher, srcLocales['en']);
+          });
+
+          after(function() {
+            fetchMock.restore();
+          });
+
           beforeEach(function() {
             xEl = fixture('x-el-fixture');
-            xEl2 = fixture('x-el-fixture-polymer-2');
           });
           it('Should set the default language to the value of WCI18n.language (if set)', function(done) {
             flush(function() {
               expect(xEl.language).to.equal('ko');
               expect(xEl.i18n('hello-msg')).to.equal(srcLocales.ko['hello-msg']);
-              expect(xEl2.language).to.equal('ko');
-              expect(xEl2.i18n('hello-msg')).to.equal(srcLocales.ko['hello-msg']);
               done();
             });
           });
@@ -82,8 +83,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             flush(function() {
               expect(xEl.language).to.equal('en');
               expect(xEl.i18n('hello-msg')).to.equal(srcLocales.en['hello-msg']);
-              expect(xEl2.language).to.equal('en');
-              expect(xEl2.i18n('hello-msg')).to.equal(srcLocales.en['hello-msg']);
               done();
             });
           });
