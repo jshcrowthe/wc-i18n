@@ -1,181 +1,213 @@
 <!doctype html>
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
 
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
-    <link rel="import" href="../../promise-polyfill/promise-polyfill-lite.html">
-    <script src="../../fetch/fetch.js"></script>
-    <script src="../../fetch-mock/index.js"></script>
+  <script src="../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../wct-browser-legacy/browser.js"></script>
+  <script src="../../fetch-mock/dist/es5/client-bundle.js"></script>
 
-    <script>
-      // This is a nasty global test hack. Super bad but it works
-      var srcLocales = {
-        "en":{
-          "hello-msg":"Hello!",
-          "fancy-msg":"This is a {type} {thing}"
-        },
-        "ko":{
-          "hello-msg":"안녕하세요!"
-        },
-        "fr":{
-          "hello-msg":"Bonjour!"
-        },
-        "de":{
-          "hello-msg":"Gutentag!"
-        }
-      };
-    </script>
-    <!-- Step 1: import the element to test -->
-    <link rel="import" href="./x-el.html">
-    <link rel="import" href="./x-el-inline.html">
-  </head>
-  <body>
+</head>
+<body>
 
-    <!-- You can use the document as a place to set up your fixtures. -->
-    <test-fixture id="x-el-fixture">
-      <template>
-        <x-el></x-el>
-      </template>
-    </test-fixture>
+<!-- You can use the document as a place to set up your fixtures. -->
+<test-fixture id="x-el-fixture">
+  <template>
+    <x-el></x-el>
+  </template>
+</test-fixture>
 
-    <test-fixture id="x-el-inline-fixture">
-      <template>
-        <x-el-inline></x-el-inline>
-      </template>
-    </test-fixture>
+<test-fixture id="x-el-inline-fixture">
+  <template>
+    <x-el-inline></x-el-inline>
+  </template>
+</test-fixture>
 
-    <script>
-      (function() {
-        describe((~location.search.indexOf('dom=shadow') ? 'Shadow DOM Tests' : 'Light DOM Tests'), function() {
-          var xEl, xElInline, server;
+<test-fixture id="x-el-p3-fixture">
+  <template>
+    <x-el-p3></x-el-p3>
+  </template>
+</test-fixture>
 
-          beforeEach(function() {
-            xElInline = fixture('x-el-inline-fixture');
-          });
+<test-fixture id="x-el-nested-fixture">
+  <template>
+    <x-el-nested></x-el-nested>
+  </template>
+</test-fixture>
 
-          /**
-           * Blank Elememnt Tests
-           */
-          describe('WCI18n', function() {
-            describe('by default', function() {
-              it('should have an i18n function', function() {
-                expect(xElInline.i18n).to.be.an('undefined');
-                flush(function() {
-                  expect(xElInline.i18n).to.be.a('function');
-                });
-              });
-              it('should have a language property that defaults to `en`', function() {
-                expect(xElInline.language).to.equal('en');
-              });
-            });
-            describe('if strings inlined', function() {
-              beforeEach(function() {
-                xElInline = fixture('x-el-inline-fixture');
-              });
-              describe('When initialized', function() {
-                it('should have a translation function that returns strings', function(done) {
-                  flush(function() {
-                    var key = 'hello-msg';
-                    expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
-                    done();
-                  });
-                });
-                it('should update translation function when language changes', function(done) {
-                  var key = 'hello-msg';
-                  var newLang = 'fr';
-                  flush(function() {
-                    var enI18n = xElInline.i18n;
-                    xElInline.language = newLang;
-                    expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
-                    flush(function() {
-                      expect(enI18n).to.not.equal(xElInline.i18n);
-                      expect(xElInline.i18n(key)).to.equal(srcLocales[newLang][key]);
-                      done();
-                    });
-                  });
-                });
-              });
-            });
-            describe('if not inlined', function() {
-              var matcher = /\/components\/wc-i18n\/test\/locales\/x-el_en\.json/;
-              before(function() {
-                fetchMock.get(matcher, srcLocales['en']);
-              });
+<test-fixture id="x-el-nested-p3-fixture">
+  <template>
+    <x-el-nested-p3></x-el-nested-p3>
+  </template>
+</test-fixture>
 
-              after(function() {
-                fetchMock.restore();
-              });
+<script type="module">
+  import './x-el.js';
+  import './x-el-inline.js';
+  import './x-el-p3.js';
+  import './x-el-nested/x-el-nested.js';
+  import './x-el-nested/x-el-nested-p3.js';
+  import srcLocales from './test-locales';
 
-              var i18nFxn;
-              beforeEach(function() {
-                xEl = fixture('x-el-fixture');
-                i18nFxn = xEl.i18n;
-              });
+  describe((~location.search.indexOf('wc-shadydom=true') ? 'Shadow DOM Tests' : 'Light DOM Tests'), function () {
+    var xEl, xElInline, xElNested, xElNestedP3;
 
-              describe('when initialized', function() {
-                it('should attempt to fetch locales', function() {
-                  expect(fetchMock.called(matcher)).to.be.true;
-                });
-                it('should update translation function with strings when returned', function(done) {
-                  var key = 'hello-msg';
-                  var handler = function() {
-                    expect(i18nFxn !== xEl.i18n).to.be.true;
-                    expect(xEl.i18n(key)).to.equal(srcLocales['en'][key]);
-                    done();
-                    xEl.removeEventListener('wc-i18n-translations-loaded', handler);
-                  };
-                  xEl.addEventListener('wc-i18n-translations-loaded', handler);
-                });
-              });
-            });
-            describe('translation function', function() {
-              it('should interpolate from a placeholder object', function(done) {
-                var key = 'fancy-msg';
-                flush(function() {
-                  expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
-                  expect(xElInline.i18n(key, {
-                    type: 'fancy'
-                  })).to.equal('This is a fancy {thing}');
-                  expect(xElInline.i18n(key, {
-                    type: 'fancy',
-                    thing: 'car'
-                  })).to.equal('This is a fancy car');
-                  done();
-                });
-              });
-              it('should interpolate from a key value argument sequence', function(done) {
-                var key = 'fancy-msg';
-                flush(function() {
-                  expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
-                  expect(xElInline.i18n(key, 'type', 'fancy')).to.equal('This is a fancy {thing}');
-                  expect(xElInline.i18n(key, 'type', 'fancy', 'thing', 'car')).to.equal('This is a fancy car');
-                  done();
-                });
-              });
-              it('should fall back to the key on missing strings', function(done) {
-                var key = 'missing-key';
-                flush(function() {
-                  expect(xElInline.i18n(key)).to.equal('KEY: ' + key + ' (en)');
-                  done();
-                });
-              });
-            })
+    beforeEach(function () {
+      xElInline = fixture('x-el-inline-fixture');
+    });
+
+    /**
+     * Blank Element Tests
+     */
+    describe('WCI18n', function () {
+      describe('by default', function () {
+        it('should have an i18n function', function () {
+          expect(xElInline.i18n).to.be.an('undefined');
+          flush(function () {
+            expect(xElInline.i18n).to.be.a('function');
           });
         });
-      })();
-    </script>
+        it('should have a language property that defaults to `en`', function () {
+          expect(xElInline.language).to.equal('en');
+        });
+      });
 
-  </body>
+      describe('if strings inlined', function () {
+        beforeEach(function () {
+          xElInline = fixture('x-el-inline-fixture');
+        });
+        describe('When initialized', function () {
+          it('should have a translation function that returns strings', function (done) {
+            flush(function () {
+              var key = 'hello-msg';
+              expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+              done();
+            });
+          });
+          it('should update translation function when language changes', function (done) {
+            var key = 'hello-msg';
+            var newLang = 'fr';
+            flush(function () {
+              var enI18n = xElInline.i18n;
+              xElInline.language = newLang;
+              expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+              flush(function () {
+                expect(enI18n).to.not.equal(xElInline.i18n);
+                expect(xElInline.i18n(key)).to.equal(srcLocales[newLang][key]);
+                done();
+              });
+            });
+          });
+        });
+      });
+
+      describe('if not inlined', function () {
+        var matcherEl = /\/components\/wc-i18n\/test\/locales\/x-el_en\.json/;
+        var matcherEl_de = /\/components\/wc-i18n\/test\/locales\/x-el_de\.json/;
+        var matcherElNested = /\/components\/wc-i18n\/test\/x-el-nested\/locales\/x-el-nested_en\.json/;
+        var matcherElNestedP3 = /\/components\/wc-i18n\/test\/x-el-nested\/locales\/x-el-nested-p3_en\.json/;
+        var matcherElNestedP3_fr = /\/components\/wc-i18n\/test\/x-el-nested\/locales\/x-el-nested-p3_fr\.json/;
+        before(function () {
+          fetchMock.get(matcherEl, srcLocales['en']);
+          fetchMock.get(matcherEl_de, srcLocales['de']);
+          fetchMock.get(matcherElNested, srcLocales['en']);
+          fetchMock.get(matcherElNestedP3, srcLocales['en']);
+          fetchMock.get(matcherElNestedP3_fr, srcLocales['fr']);
+        });
+
+        after(function () {
+          fetchMock.restore();
+        });
+
+        var i18nFxn;
+        beforeEach(function (done) {
+          xEl = fixture('x-el-fixture');
+          xElNested = fixture('x-el-nested-fixture');
+          xElNestedP3 = fixture('x-el-nested-p3-fixture');
+          i18nFxn = xEl.i18n;
+          // let languages get fetched and updated
+          flush(done);
+        });
+
+        describe('when initialized', function () {
+          it('should attempt to fetch locales', function () {
+            expect(fetchMock.called(matcherEl), 'wrong URL for x-el locales').to.be.true;
+            expect(fetchMock.called(matcherElNested), 'wrong URL for x-el-nested locales').to.be.true;
+            expect(fetchMock.called(matcherElNestedP3), 'wrong URL for x-el-nested-p3 locales').to.be.true;
+          });
+          it('should update translation function with strings when returned', function (done) {
+            WCI18n.setLanguage('de');
+            var key = 'hello-msg';
+            var handler = function () {
+              expect(i18nFxn !== xEl.i18n).to.be.true;
+              expect(fetchMock.called(matcherEl_de), 'wrong URL for x-el German locales').to.be.true;
+              expect(xEl.i18n(key)).to.equal(srcLocales['de'][key]);
+              done();
+              xEl.removeEventListener('wc-i18n-translations-loaded', handler);
+            };
+            xEl.addEventListener('wc-i18n-translations-loaded', handler);
+          });
+          it('should handle nested elements', function (done) {
+            var fancyKey = 'fancy-msg';
+            flush(() => {
+              expect(xElNestedP3.i18n(fancyKey, 'type', 'big', 'thing', 'item')).to.equal('This is a big item');
+              expect(xElNestedP3.i18n(fancyKey, {type: 'small', thing: 'object'})).to.equal('This is a small object');
+              done();
+            });
+          });
+          it('should handle nested elements in another language', function (done) {
+            var fancyKey = 'fancy-msg';
+            // flush does not wait long enough for the translations to load, so wait for them to load with event
+            xElNestedP3.addEventListener('wc-i18n-translations-loaded', () => {
+              expect(fetchMock.called(matcherElNestedP3_fr), 'wrong URL for x-el-nested-p3 French locales').to.be.true;
+              expect(xElNestedP3.i18n(fancyKey, 'type', 'big', 'thing', 'item')).to.equal(`C'est une item big`);
+              expect(xElNestedP3.i18n(fancyKey, {type: 'small', thing: 'object'})).to.equal(`C'est une object small`);
+              expect(xElNestedP3.i18n(fancyKey, {type: xElNestedP3.i18n('red'), thing: xElNestedP3.i18n('ball')})).to.equal(`C'est une boule rouge`);
+              expect(xElNestedP3.shadowRoot.querySelector('p').textContent).to.equal(`C'est une boule rouge`);
+              done();
+            });
+
+            WCI18n.setLanguage('fr');
+          });
+        });
+      });
+
+      describe('translation function', function () {
+        it('should interpolate from a placeholder object', function (done) {
+          var key = 'fancy-msg';
+          flush(function () {
+            expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+            expect(xElInline.i18n(key, {
+              type: 'fancy'
+            })).to.equal('This is a fancy {thing}');
+            expect(xElInline.i18n(key, {
+              type: 'fancy',
+              thing: 'car'
+            })).to.equal('This is a fancy car');
+            done();
+          });
+        });
+        it('should interpolate from a key value argument sequence', function (done) {
+          var key = 'fancy-msg';
+          flush(function () {
+            expect(xElInline.i18n(key)).to.equal(srcLocales['en'][key]);
+            expect(xElInline.i18n(key, 'type', 'fancy')).to.equal('This is a fancy {thing}');
+            expect(xElInline.i18n(key, 'type', 'fancy', 'thing', 'car')).to.equal('This is a fancy car');
+            done();
+          });
+        });
+        it('should fall back to the key on missing strings', function (done) {
+          var key = 'missing-key';
+          flush(function () {
+            expect(xElInline.i18n(key)).to.equal('KEY: ' + key + ' (en)');
+            done();
+          });
+        });
+      })
+    });
+  });
+</script>
+
+</body>
 </html>

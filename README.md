@@ -28,43 +28,65 @@ Specifically:
 
 `WCI18n` is included and used in your component as follows:
 
-#### Polymer 2
+#### Polymer 3 Classes
 
-```html
-<dom-module id='custom-el'>
-  <template>
-    <!-- Use the provided `i18n` function -->
-    <p>[[i18n('key')]]</p>
-  </template>
-  <script>
-    class CustomEl extends Polymer.mixinBehaviors([WCI18n()], Polymer.Element) {
-      static get is() {
-        return 'custom-el';
-      }
-      /* ... */
-    }
-    customElements.define(CustomEl.is, CustomEl);
-  </script>
-</dom-module>
+`WCI18n` uses importPath, so components should define `importMeta` as shown here.
+
+```js
+import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
+import '../wc-i18n.js';
+import srcLocales from './test-locales.js';
+
+class CustomEl extends mixinBehaviors([WCI18n(srcLocales)], PolymerElement) {
+  static get importMeta() {
+    return import.meta;
+  }
+
+  static get template() {
+    return html`
+      <style>
+        :host {
+          display: block;
+        }
+      </style>
+      <p>[[i18n('key')]]</p>
+    `;
+  }
+}
+customElements.define('custom-el', CustomEl);
 ```
 
-#### Polymer 1
+#### Polymer 3 Legacy Constructor
 
-```html
-<dom-module id='custom-el'>
-  <template>
-    <!-- Use the provided `i18n` function -->
-    <p>i18n('key')</p>
-  </template>
-  <script>
-    Polymer({
-      is: 'custom-el',
-      behaviors: [
-        WCI18n() // <-- Include the behavior
-      ]
-    });
-  </script>
-</dom-module>
+`WCI18n` uses importPath, so components should define `importMeta` as shown here.
+
+```js
+import { Polymer, html } from '@polymer/polymer/polymer-legacy.js';
+import '../wc-i18n.js';
+
+Polymer({
+  _template: html`
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+  <p>[[i18n('key')]]</p>
+
+`,
+
+  is: 'x-el',
+
+  get importMeta() {
+    return import.meta;
+  },
+
+  behaviors: [
+    WCI18n()
+  ]
+});
+
 ```
 
 You can inject a translation object by passing a formatted locales object to the `WCI18n` function.

@@ -1,29 +1,35 @@
 {
   "name": "wc-i18n",
-  "version": "3.0.0",
+  "version": "4.0.0",
+  "description": "A translation solution for web components",
+  "main": "wc-i18n.js",
+  "dependencies": {
+    "@polymer/polymer": "^3.0.0"
+  },
+  "devDependencies": {
+    "@polymer/iron-component-page": "^4.0.1",
+    "@webcomponents/webcomponentsjs": "^2.0.0",
+    "fetch-mock": "^7.2.5",
+    "wct-browser-legacy": "^1.0.1",
+    "web-component-tester": "^6.9.0"
+  },
+  "scripts": {
+    "test": "wct --npm"
+  },
   "authors": [
     "Josh Crowther <jshcrowthe@gmail.com>"
   ],
-  "scripts": {
-    "test": "bower install && wct"
-  },
-  "description": "A translation solution for web components",
+  "ignore": [
+    "/.*",
+    "/tests/"
+  ],
+  "homepage": "https://github.com/jshcrowthe/wc-i18n/",
+  "license": "MIT",
   "keywords": [
     "web-component",
     "web-components",
     "polymer",
     "i18n",
     "internationalization"
-  ],
-  "main": "wc-i18n.html",
-  "license": "MIT",
-  "homepage": "https://github.com/jshcrowthe/wc-i18n/",
-  "ignore": [
-    "/.*",
-    "/tests/"
-  ],
-  "dependencies": {
-    "bower": "^1.8.0",
-    "web-component-tester": "^5.0.0"
-  }
+  ]
 }

@@ -10,13 +10,11 @@ Or see the LICENSE file that comes with this code.
     <meta charset="utf-8">
     <title>wc-i18n demo</title>
 
-    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
-    <script src="../../promise-polyfill/promise.min.js"></script>
-    <script src="../../fetch/fetch.js"></script>
-    <link rel="import" href="./demo-comp/demo-comp.html">
-    <link rel="import" href="./test-comp/test-comp.html">
-    <link rel="import" href="./fancy-el/fancy-el.html">
-    <link rel="import" href="../wc-i18n.html">
+    <script src="../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script type="module" src="./demo-comp/demo-comp.js"></script>
+    <script type="module" src="./test-comp/test-comp.js"></script>
+    <script type="module" src="./fancy-el/fancy-el.js"></script>
+    <script type="module" src="../wc-i18n.js"></script>
   </head>
   <body>
     <div>
@@ -53,10 +51,10 @@ Or see the LICENSE file that comes with this code.
     <demo-comp></demo-comp>
     <fancy-el></fancy-el>
 
-    <script>
+    <script type="module">
       var langPicker = document.querySelector('#langPicker');
       langPicker.addEventListener('change', function() {
-        document.querySelector('demo-comp').language = langPicker.value;
+        WCI18n.setLanguage(langPicker.value);
       });
     </script>
   </body>
